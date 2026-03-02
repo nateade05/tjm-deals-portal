@@ -1,0 +1,67 @@
+/**
+ * Single source of truth for car makes (admin form + public filters).
+ */
+export const CAR_MAKES = [
+  'Audi',
+  'BMW',
+  'Mercedes-Benz',
+  'Porsche',
+  'Volkswagen',
+  'Toyota',
+  'Honda',
+  'Nissan',
+  'Mazda',
+  'Lexus',
+  'Subaru',
+  'Mitsubishi',
+  'Kia',
+  'Hyundai',
+  'Ford',
+  'Chevrolet',
+  'Tesla',
+  'Volvo',
+  'Land Rover',
+  'MINI',
+  'Jaguar',
+  'Peugeot',
+  'Renault',
+  'Skoda',
+  'Seat',
+  'Suzuki',
+  'Isuzu',
+  'Daihatsu',
+  'Alfa Romeo',
+  'Bentley',
+  'Ferrari',
+  'Lamborghini',
+  'Maserati',
+  'McLaren',
+  'Rolls-Royce',
+  'Aston Martin',
+  'Jeep',
+  'Dodge',
+  'Chrysler',
+  'GMC',
+  'Cadillac',
+] as const;
+
+export const CAR_COLOURS = [
+  'Black',
+  'White',
+  'Silver',
+  'Grey',
+  'Blue',
+  'Red',
+  'Green',
+  'Yellow',
+  'Orange',
+  'Brown',
+  'Beige',
+  'Gold',
+  'Purple',
+  'Other',
+] as const;
+
+export const TRANSMISSION_OPTIONS = ['Automatic', 'Manual', 'Semi-Automatic'] as const;
+
+export const FUEL_OPTIONS = ['Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric'] as const;

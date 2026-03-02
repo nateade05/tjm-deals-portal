@@ -1,0 +1,122 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ListingSummaryCard } from '@/components/ListingSummaryCard';
+import { ListingForm } from '@/components/ListingForm';
+import { MediaUploader } from '@/components/MediaUploader';
+import { AdminListingMediaList } from '@/components/AdminListingMediaList';
+import { AdminPublicLink } from '@/components/AdminPublicLink';
+import { updateListingFromForm, setListingStatus } from '@/lib/actions/listings';
+import { noopCreateAction } from '@/lib/actions/listings';
+import type { Listing } from '@/lib/supabase/types';
+import type { ListingMedia } from '@/lib/supabase/types';
+
+function computeTitle(listing: Listing): string {
+  return [listing.year, listing.make, listing.model].filter(Boolean).map(String).join(' ').trim() || listing.title || '—';
+}
+
+interface AdminListingEditClientProps {
+  listing: Listing;
+  mediaWithUrls: (ListingMedia & { signedUrl?: string })[];
+}
+
+export function AdminListingEditClient({ listing: initialListing, mediaWithUrls }: AdminListingEditClientProps) {
+  const router = useRouter();
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+
+  async function handlePublish() {
+    const result = await setListingStatus(initialListing.id, 'live');
+    if ('error' in result) return;
+    router.refresh();
+  }
+
+  const computedTitle = computeTitle(initialListing);
+
+  return (
+    <div className="space-y-8">
+      {/* 1) Listing details: summary or form */}
+      {!isEditingDetails ? (
+        <ListingSummaryCard listing={initialListing} onEditDetails={() => setIsEditingDetails(true)} />
+      ) : (
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-zinc-900">Edit details</h2>
+            <button
+              type="button"
+              onClick={() => setIsEditingDetails(false)}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Cancel
+            </button>
+          </div>
+          <ListingForm
+            mode="edit"
+            listing={initialListing}
+            listingId={initialListing.id}
+            createAction={noopCreateAction}
+            updateAction={updateListingFromForm}
+            showSubmitButton={false}
+            formId="admin-listing-edit-form"
+          />
+        </div>
+      )}
+
+      {/* 2) Media */}
+      <section>
+        <h2 className="mb-3 text-sm font-medium text-zinc-700">Media</h2>
+        <MediaUploader listingId={initialListing.id} existingMedia={mediaWithUrls} />
+        <div className="mt-3">
+          <AdminListingMediaList listingId={initialListing.id} media={mediaWithUrls} />
+        </div>
+      </section>
+
+      {/* 3) Title section (when summary view) or form has title inside when editing */}
+      {!isEditingDetails && (
+        <section className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4">
+          <h3 className="text-sm font-semibold text-zinc-800">Listing title</h3>
+          <p className="mt-2 text-base font-medium text-zinc-900">
+            Your listing title: <span className="text-zinc-700">{computedTitle}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsEditingDetails(true)}
+            className="mt-2 text-sm font-medium text-zinc-600 underline hover:text-zinc-900"
+          >
+            Edit title
+          </button>
+        </section>
+      )}
+
+      {/* 4) Main CTAs */}
+      <div className="flex flex-wrap items-center gap-3">
+        {isEditingDetails && (
+          <button
+            type="submit"
+            form="admin-listing-edit-form"
+            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          >
+            Save changes
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handlePublish}
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          {initialListing.status === 'live' ? 'Update published listing' : 'Publish'}
+        </button>
+      </div>
+
+      {/* Public link */}
+      <section>
+        <h2 className="mb-3 text-sm font-medium text-zinc-700">Public link</h2>
+        {initialListing.status === 'live' ? (
+          <AdminPublicLink listingId={initialListing.id} />
+        ) : (
+          <p className="text-sm text-zinc-500">Publish to make this visible on the public site.</p>
+        )}
+      </section>
+    </div>
+  );
+}

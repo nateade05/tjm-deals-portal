@@ -1,64 +1,101 @@
-import Image from "next/image";
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import { TopNav } from '@/components/TopNav';
+import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
 
-export default function Home() {
+export const revalidate = 120;
+
+export const metadata: Metadata = {
+  title: `${BRAND_SHORT} | Singapore car deals landed in the UK`,
+  description: TAGLINE,
+  openGraph: {
+    title: `${BRAND_SHORT} | Singapore car deals landed in the UK`,
+    description: TAGLINE,
+    type: 'website',
+  },
+};
+
+const STEPS = [
+  { icon: '📋', title: 'Tell us what you want' },
+  { icon: '🔍', title: 'We source from Singapore network' },
+  { icon: '✓', title: 'Confirm landed price in the UK' },
+  { icon: '📦', title: 'Shipping, customs, and paperwork handled' },
+  { icon: '🚗', title: 'Delivered + registered in the UK' },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <TopNav />
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="border-b border-zinc-200 bg-zinc-50/50 px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+              {TAGLINE}
+            </h1>
+            <p className="mt-4 text-lg text-zinc-600">
+              Premium right-hand drive vehicles from Singapore, landed in the UK. We handle
+              shipping, customs, and registration so you can focus on your customers.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/listings?category=in_stock"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white hover:bg-zinc-800"
+              >
+                View In-Stock
+              </Link>
+              <Link
+                href="/listings?category=opportunity"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-zinc-300 bg-white px-6 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                View Opportunities
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="text-center text-2xl font-semibold text-zinc-900">
+              How it works
+            </h2>
+            <div className="mt-10 flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              {STEPS.map((step, i) => (
+                <div
+                  key={step.title}
+                  className="flex flex-shrink-0 flex-col items-center text-center sm:max-w-[10rem]"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-200 text-xl">
+                    {step.icon}
+                  </span>
+                  <span className="mt-2 text-xs font-medium text-zinc-500">
+                    {i + 1}
+                  </span>
+                  <p className="mt-1 text-sm font-medium text-zinc-900">{step.title}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 text-center">
+              <Link
+                href="/how-it-works"
+                className="text-sm font-medium text-zinc-600 underline hover:text-zinc-900"
+              >
+                Learn more
+              </Link>
+            </p>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="mt-auto border-t border-zinc-200 bg-white px-4 py-8 sm:px-6">
+          <div className="mx-auto max-w-5xl">
+            <p className="text-sm text-zinc-500">
+              © {new Date().getFullYear()} {BRAND_SHORT}. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </main>
     </div>
   );
