@@ -5,7 +5,7 @@ import { CategoryTabs } from '@/components/CategoryTabs';
 import { ListingsClient } from './_ListingsClient';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
 import { supabaseServer } from '@/lib/supabase/server';
-import type { ListingCategory } from '@/lib/supabase/types';
+import type { Listing, ListingCategory } from '@/lib/supabase/types';
 
 export const revalidate = 120;
 
@@ -36,7 +36,37 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
     .eq('category', category)
     .order('updated_at', { ascending: false });
 
-  const listings = (data ?? []) as any[];
+  const listings = (data ?? []) as Listing[];
+
+  // Fetch first image per listing for thumbnails
+  let coverUrls: Record<string, string | undefined> = {};
+  if (listings.length > 0) {
+    const listingIds = listings.map((l) => l.id);
+    const { data: media } = await supabase
+      .from('listing_media')
+      .select('listing_id, storage_path, type, sort_order')
+      .in('listing_id', listingIds)
+      .eq('type', 'image')
+      .order('sort_order', { ascending: true });
+
+    const firstByListing: Record<string, string> = {};
+    for (const row of (media ?? []) as { listing_id: string; storage_path: string }[]) {
+      if (!firstByListing[row.listing_id]) {
+        firstByListing[row.listing_id] = row.storage_path;
+      }
+    }
+
+    const entries = Object.entries(firstByListing);
+    const signedPairs = await Promise.all(
+      entries.map(async ([listingId, storagePath]) => {
+        const { data: signed } = await supabase.storage
+          .from('listing-media')
+          .createSignedUrl(storagePath, 60 * 60);
+        return [listingId, signed?.signedUrl] as const;
+      })
+    );
+    coverUrls = Object.fromEntries(signedPairs);
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -58,7 +88,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
           </div>
 
           <Suspense fallback={<div className="text-sm text-zinc-500">Loading listings…</div>}>
-            <ListingsClient initialListings={listings as any} />
+            <ListingsClient initialListings={listings} coverUrls={coverUrls} />
           </Suspense>
         </div>
       </main>

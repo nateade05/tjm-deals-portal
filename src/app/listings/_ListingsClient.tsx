@@ -13,9 +13,10 @@ const MAX_PRICE_OPTIONS = Array.from({ length: 50 }, (_, i) => (i + 1) * 1000); 
 
 interface ListingsClientProps {
   initialListings: Listing[];
+  coverUrls: Record<string, string | undefined>;
 }
 
-export function ListingsClient({ initialListings }: ListingsClientProps) {
+export function ListingsClient({ initialListings, coverUrls }: ListingsClientProps) {
   const searchParams = useSearchParams();
   const [makeFilter, setMakeFilter] = useState('');
   const [maxPriceFilter, setMaxPriceFilter] = useState<number | ''>('');
@@ -85,10 +86,12 @@ export function ListingsClient({ initialListings }: ListingsClientProps) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((listing) => {
+            const coverUrl = coverUrls[listing.id];
             return (
               <ListingCard
                 key={listing.id}
                 listing={listing}
+                coverImageUrl={coverUrl}
               />
             );
           })}
