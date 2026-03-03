@@ -13,13 +13,13 @@ export function ListingDetailCTA({ listing }: ListingDetailCTAProps) {
 
   return (
     <>
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-start">
+      <div className="mt-6 flex justify-center">
         <Button
           type="button"
-          variant="primary"
+          variant="whatsapp"
           size="md"
           fullWidth
-          className="sm:w-auto"
+          className="max-w-xs sm:w-auto"
           onClick={() => setModalOpen(true)}
         >
           Chat on WhatsApp

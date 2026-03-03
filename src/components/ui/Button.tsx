@@ -6,7 +6,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
 }
 
-type Variant = 'primary' | 'outline' | 'ghost';
+type Variant = 'primary' | 'outline' | 'ghost' | 'whatsapp';
 type Size = 'sm' | 'md';
 
 type ButtonProps = PropsWithChildren<
@@ -35,6 +35,8 @@ export function Button({
       'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800',
     ghost:
       'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
+    whatsapp:
+      'bg-[#25D366] text-white hover:bg-[#20bd5a] dark:bg-[#22c35e] dark:text-slate-950 dark:hover:bg-[#1ba850]',
   };
 
   const sizes: Record<Size, string> = {

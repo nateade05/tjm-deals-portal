@@ -46,7 +46,7 @@ export function TopNav() {
             </Link>
             <Button
               type="button"
-              variant="primary"
+              variant="whatsapp"
               size="sm"
               onClick={() => setLeadOpen(true)}
               className="min-w-[96px] px-3.5 sm:px-4"
