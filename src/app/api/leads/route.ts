@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
+import { supabaseServerPublic } from '@/lib/supabase/server';
 
 interface LeadBody {
   listing_id?: string | null;
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = await supabaseServer();
+    const supabase = await supabaseServerPublic();
 
     const { data, error } = await supabase
       .from('leads')

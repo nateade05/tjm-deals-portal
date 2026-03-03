@@ -5,7 +5,7 @@ import { MediaGallery } from '@/components/MediaGallery';
 import { StatRow } from '@/components/StatRow';
 import { ListingDetailCTA } from '@/components/ListingDetailCTA';
 import { CopyLinkButton } from '@/components/CopyLinkButton';
-import { supabaseServer } from '@/lib/supabase/server';
+import { supabaseServerPublic } from '@/lib/supabase/server';
 import type { Listing, ListingMedia } from '@/lib/supabase/types';
 import { formatGBP, formatMiles, timeAgo } from '@/lib/format';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
@@ -16,8 +16,23 @@ interface ListingPageProps {
   params: Promise<{ id: string }>;
 }
 
+function getCategoryBadge(category: Listing['category']) {
+  if (category === 'in_stock') {
+    return {
+      label: 'IN STOCK',
+      badgeClass:
+        'bg-transparent text-slate-700 border-2 border-slate-400 dark:text-slate-200 dark:border-slate-500',
+    };
+  }
+  return {
+    label: 'OPPORTUNITY',
+    badgeClass:
+      'bg-transparent text-yellow-500 border-2 border-yellow-500 dark:text-yellow-600 dark:border-yellow-600',
+  };
+}
+
 async function getListingWithMedia(id: string): Promise<{ listing: Listing; media: ListingMedia[] } | null> {
-  const supabase = await supabaseServer();
+  const supabase = await supabaseServerPublic();
 
   const { data: listing, error: listingError } = await supabase
     .from('listings')
@@ -54,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = descParts.length
     ? `${title}. ${descParts.join(' · ')}. ${TAGLINE}`
     : `${title}. ${TAGLINE}`;
-  const supabase = await supabaseServer();
+  const supabase = await supabaseServerPublic();
   let firstImage: string | undefined;
   const firstImageRow = media.find((m) => m.type === 'image');
   if (firstImageRow) {
@@ -89,7 +104,7 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
 
   const { listing, media } = data;
 
-  const supabase = await supabaseServer();
+  const supabase = await supabaseServerPublic();
   const images: string[] = [];
   let videoUrl: string | undefined;
 
@@ -128,44 +143,56 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
             <MediaGallery images={images} videoUrl={videoUrl} />
           </div>
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="text-lg font-semibold text-zinc-900">
-                Vehicle details
-              </h2>
-              <div className="mt-4">
-                <StatRow label="Price landed (GBP)" value={formatGBP(listing.price_landed_gbp)} />
-                {listing.estimated_resale_gbp != null && (
-                  <StatRow
-                    label="Estimated resale (GBP)"
-                    value={formatGBP(listing.estimated_resale_gbp)}
-                  />
-                )}
-                <StatRow label="Mileage" value={formatMiles(listing.mileage_mi)} />
-                {listing.year && <StatRow label="Year" value={listing.year} />}
-                {listing.colour && <StatRow label="Colour" value={listing.colour} />}
-                {listing.transmission && (
-                  <StatRow label="Transmission" value={listing.transmission} />
-                )}
-                {listing.fuel && <StatRow label="Fuel" value={listing.fuel} />}
-                <StatRow label="Category" value={listing.category === 'in_stock' ? 'In stock' : 'Opportunity'} />
-              </div>
-              {listing.description && (
-                <div className="mt-4 border-t border-zinc-100 pt-4">
-                  <h3 className="text-sm font-semibold text-zinc-900">Description</h3>
-                  <p className="mt-2 text-base text-zinc-700">{listing.description}</p>
+            <div className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              {(() => {
+                const badge = getCategoryBadge(listing.category);
+                return (
+                  <span
+                    className={`absolute right-2 top-2 inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[11px] font-semibold tracking-wide whitespace-nowrap sm:right-3 sm:top-3 sm:text-xs ${badge.badgeClass}`}
+                    aria-label={`Listing status: ${badge.label === 'IN STOCK' ? 'In Stock' : 'Opportunity'}`}
+                  >
+                    {badge.label}
+                  </span>
+                );
+              })()}
+              <div className="pt-6 sm:pt-8">
+                <h2 className="text-lg font-semibold text-zinc-900">
+                  Vehicle details
+                </h2>
+                <div className="mt-4">
+                  <StatRow label="Price landed (GBP)" value={formatGBP(listing.price_landed_gbp)} />
+                  {listing.estimated_resale_gbp != null && (
+                    <StatRow
+                      label="Estimated resale (GBP)"
+                      value={formatGBP(listing.estimated_resale_gbp)}
+                    />
+                  )}
+                  <StatRow label="Mileage" value={formatMiles(listing.mileage_mi)} />
+                  {listing.year && <StatRow label="Year" value={listing.year} />}
+                  {listing.colour && <StatRow label="Colour" value={listing.colour} />}
+                  {listing.transmission && (
+                    <StatRow label="Transmission" value={listing.transmission} />
+                  )}
+                  {listing.fuel && <StatRow label="Fuel" value={listing.fuel} />}
                 </div>
-              )}
-              <ListingDetailCTA
-                listing={{
-                  id: listing.id,
-                  title,
-                  year: listing.year,
-                  make: listing.make,
-                  model: listing.model,
-                  category: listing.category,
-                  price_landed_gbp: listing.price_landed_gbp,
-                }}
-              />
+                {listing.description && (
+                  <div className="mt-4 border-t border-zinc-100 pt-4">
+                    <h3 className="text-sm font-semibold text-zinc-900">Description</h3>
+                    <p className="mt-2 text-base text-zinc-700">{listing.description}</p>
+                  </div>
+                )}
+                <ListingDetailCTA
+                  listing={{
+                    id: listing.id,
+                    title,
+                    year: listing.year,
+                    make: listing.make,
+                    model: listing.model,
+                    category: listing.category,
+                    price_landed_gbp: listing.price_landed_gbp,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

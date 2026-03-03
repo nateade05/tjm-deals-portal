@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
+import { supabaseServerPublic } from '@/lib/supabase/server';
 
 function escapeXml(s: string): string {
   return s
@@ -12,7 +12,7 @@ function escapeXml(s: string): string {
 
 export async function GET(request: NextRequest) {
   const base = request.nextUrl.origin;
-  const supabase = await supabaseServer();
+  const supabase = await supabaseServerPublic();
   const { data } = await supabase
     .from('listings')
     .select('id')

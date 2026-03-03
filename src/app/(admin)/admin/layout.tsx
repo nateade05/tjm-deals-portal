@@ -44,7 +44,7 @@ export default async function AdminLayout({
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="text-sm font-semibold text-zinc-900">
-                  TJM Motors
+                  TJMotors
                 </div>
                 <div className="mt-0.5 text-xs text-zinc-500">
                   {user.email ?? 'Admin user'}

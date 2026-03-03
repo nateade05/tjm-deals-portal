@@ -4,7 +4,7 @@ import { TopNav } from '@/components/TopNav';
 import { CategoryTabs } from '@/components/CategoryTabs';
 import { ListingsClient } from './_ListingsClient';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
-import { supabaseServer } from '@/lib/supabase/server';
+import { supabaseServerPublic } from '@/lib/supabase/server';
 import type { Listing, ListingCategory } from '@/lib/supabase/types';
 
 export const revalidate = 120;
@@ -28,7 +28,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
   const { category: rawCategory } = await searchParams;
   const category = (rawCategory as ListingCategory) || 'in_stock';
 
-  const supabase = await supabaseServer();
+  const supabase = await supabaseServerPublic();
   const { data } = await supabase
     .from('listings')
     .select('*')

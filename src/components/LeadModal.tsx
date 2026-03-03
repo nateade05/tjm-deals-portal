@@ -32,7 +32,7 @@ function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?:
 
   if (context === 'listing' && listing) {
     const lines: string[] = [
-      `Hi TJM Motors, my name is ${name}. I'm interested in the ${carTitle} (Listing ID: ${listing.id}). Could you please confirm availability and share the next steps? Thank you.`,
+      `Hi TJMotors, my name is ${name}. I'm interested in the ${carTitle} (Listing ID: ${listing.id}). Could you please confirm availability and share the next steps? Thank you.`,
     ];
     if (listing.price_landed_gbp != null) {
       lines.push(`Landed UK price: ${formatGBP(listing.price_landed_gbp)}`);
@@ -40,7 +40,7 @@ function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?:
     return lines.join('\n');
   }
 
-  return `Hi TJM Motors, my name is ${name}. I'm interested in importing a car from Singapore to the UK. Could you share what you currently have available and how the process works? Thank you.`;
+  return `Hi TJMotors, my name is ${name}. I'm interested in importing a car from Singapore to the UK. Could you share what you currently have available and how the process works? Thank you.`;
 }
 
 export function LeadModal({ context, listing, onClose }: LeadModalProps) {

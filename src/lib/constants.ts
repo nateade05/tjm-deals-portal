@@ -1,4 +1,4 @@
-export const BRAND_SHORT = 'TJM Motors';
+export const BRAND_SHORT = 'TJMotors';
 export const BRAND_FULL = 'ThangamaniJeyam Motors';
 export const TAGLINE = 'Singapore car deals, delivered and registered in the UK';
 
