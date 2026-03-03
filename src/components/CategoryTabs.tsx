@@ -14,7 +14,7 @@ export function CategoryTabs() {
   const current = (searchParams.get('category') as ListingCategory) || 'in_stock';
 
   return (
-    <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
+    <div className="flex w-full rounded-full border border-slate-200 bg-slate-50 p-1 text-xs sm:text-sm dark:border-slate-800 dark:bg-slate-900/80">
       {TABS.map(({ value, label }) => {
         const isActive = current === value;
         const href = `/listings?category=${value}`;
@@ -22,10 +22,10 @@ export function CategoryTabs() {
           <Link
             key={value}
             href={href}
-            className={`min-w-[7rem] rounded-md px-4 py-2.5 text-center text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-full px-3 py-2.5 text-center font-medium transition-colors ${
               isActive
-                ? 'bg-white text-zinc-900 shadow-sm'
-                : 'text-zinc-600 hover:text-zinc-900'
+                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-100 dark:text-slate-900'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50'
             }`}
           >
             {label}

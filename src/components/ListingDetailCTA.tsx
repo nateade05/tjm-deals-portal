@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { LeadModal, type ListingInfo } from '@/components/LeadModal';
+import { Button } from '@/components/ui/Button';
 
 interface ListingDetailCTAProps {
   listing: ListingInfo;
@@ -12,14 +13,17 @@ export function ListingDetailCTA({ listing }: ListingDetailCTAProps) {
 
   return (
     <>
-      <div className="mt-4 flex justify-center">
-        <button
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-start">
+        <Button
           type="button"
+          variant="primary"
+          size="md"
+          fullWidth
+          className="sm:w-auto"
           onClick={() => setModalOpen(true)}
-          className="rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#20bd5a]"
         >
           Chat on WhatsApp
-        </button>
+        </Button>
       </div>
       {modalOpen && (
         <LeadModal

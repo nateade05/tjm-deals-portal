@@ -128,7 +128,7 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
             <MediaGallery images={images} videoUrl={videoUrl} />
           </div>
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <h2 className="text-lg font-semibold text-zinc-900">
                 Vehicle details
               </h2>

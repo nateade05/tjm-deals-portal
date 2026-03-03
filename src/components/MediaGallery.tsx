@@ -47,7 +47,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             <button
               type="button"
               onClick={goPrev}
-              className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
+              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
               aria-label="Previous image"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -57,7 +57,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             <button
               type="button"
               onClick={goNext}
-              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
+              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
               aria-label="Next image"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>

@@ -46,9 +46,12 @@ function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?:
 export function LeadModal({ context, listing, onClose }: LeadModalProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSubmitError(null);
     const form = formRef.current;
     if (!form) return;
 
@@ -79,9 +82,8 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
     }
     setErrors({});
 
-    // If you have an API: await fetch('/api/leads', { ... }) with listing_id when context === 'listing'
     const payload = {
-      listing_id: context === 'listing' && listing ? listing.id : '',
+      listing_id: context === 'listing' && listing ? listing.id : null,
       name: parsed.data.name,
       phone: parsed.data.phone,
       email: parsed.data.email,
@@ -89,11 +91,28 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
       ...(parsed.data.company && { company: parsed.data.company }),
       ...(parsed.data.website && { website: parsed.data.website }),
     };
-    console.log('Lead payload (mock):', payload);
 
-    const text = buildWhatsAppMessage(context, parsed.data.name, listing);
-    const url = buildWhatsAppUrl({ phoneE164: BUSINESS_WHATSAPP_E164, text });
-    window.location.href = url;
+    try {
+      setSubmitting(true);
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.ok) {
+        setSubmitError(json.error || 'Something went wrong. Please try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      const text = buildWhatsAppMessage(context, parsed.data.name, listing);
+      const url = buildWhatsAppUrl({ phoneE164: BUSINESS_WHATSAPP_E164, text });
+      window.location.href = url;
+    } catch {
+      setSubmitError('Unable to submit your details. Please check your connection and try again.');
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -112,6 +131,12 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
             <span className="text-xl leading-none">×</span>
           </button>
         </div>
+
+        {submitError && (
+          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            {submitError}
+          </p>
+        )}
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -200,9 +225,10 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-full bg-[#25D366] py-2.5 text-sm font-medium text-white hover:bg-[#20bd5a]"
+              disabled={submitting}
+              className="flex-1 rounded-full bg-[#25D366] py-2.5 text-sm font-medium text-white hover:bg-[#20bd5a] disabled:opacity-60"
             >
-              Open WhatsApp
+              {submitting ? 'Sending…' : 'Open WhatsApp'}
             </button>
           </div>
         </form>
