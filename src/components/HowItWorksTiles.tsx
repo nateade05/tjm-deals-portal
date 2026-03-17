@@ -6,7 +6,7 @@ import type { HowItWorksStep } from '@/lib/howItWorks';
 import { HOW_IT_WORKS_STEPS } from '@/lib/howItWorks';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { LeadModal } from '@/components/LeadModal';
+import { LeadModal } from '@/components/LeadModalLazy';
 import { StepIcon } from '@/components/StepIcon';
 
 type Variant = 'home' | 'page';
@@ -29,15 +29,15 @@ export function HowItWorksTiles({ variant, steps = HOW_IT_WORKS_STEPS }: HowItWo
     <section className={cn('px-4 py-14 sm:px-6 sm:py-20', isHome ? 'bg-transparent' : '')}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 text-center sm:mb-10">
-          <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+          <h2 className="text-2xl font-semibold text-primary sm:text-3xl">
             How it works
           </h2>
           {isHome ? (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+            <p className="mt-3 text-sm text-secondary">
               A simple, structured process from sourcing in Singapore to registration in the UK.
             </p>
           ) : (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300 sm:text-base">
+            <p className="mt-3 text-sm text-secondary sm:text-base">
               From first enquiry to DVLA registration, each step is tightly managed so you know
               exactly where your vehicle is in the process.
             </p>
@@ -46,7 +46,7 @@ export function HowItWorksTiles({ variant, steps = HOW_IT_WORKS_STEPS }: HowItWo
 
         <div className="relative">
           {!isHome && (
-            <div className="pointer-events-none absolute inset-y-2 left-4 hidden w-px bg-zinc-200 dark:bg-zinc-700 sm:block" />
+            <div className="pointer-events-none absolute inset-y-2 left-4 hidden w-px bg-border-subtle sm:block" />
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -54,45 +54,45 @@ export function HowItWorksTiles({ variant, steps = HOW_IT_WORKS_STEPS }: HowItWo
               <Card
                 key={step.step}
                 className={cn(
-                  'relative flex flex-col gap-3 rounded-2xl border-zinc-200 bg-white/90 text-zinc-900 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-50',
+                  'relative flex flex-col gap-3 rounded-2xl border-border-subtle bg-surface/95 text-primary shadow-sm backdrop-blur-sm',
                   !isHome && 'sm:pl-8'
                 )}
               >
                 {!isHome && (
-                  <div className="pointer-events-none absolute left-3 top-6 hidden h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100 sm:block" />
+                  <div className="pointer-events-none absolute left-3 top-6 hidden h-2 w-2 rounded-full bg-ink sm:block" />
                 )}
 
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50">
+                  <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-surface-alt text-primary">
                     <StepIcon icon={step.icon} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex h-6 items-center rounded-full bg-zinc-100 px-2 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                      <span className="inline-flex h-6 items-center rounded-full bg-surface-alt px-2 text-xs font-medium text-secondary">
                         Step {step.step}
                       </span>
-                      <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50 sm:text-base">
+                      <h3 className="truncate text-sm font-semibold text-primary sm:text-base">
                         {step.title}
                       </h3>
                       {step.timeframe && (
-                        <span className="ml-auto inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                        <span className="ml-auto inline-flex items-center rounded-full border border-border-subtle bg-surface-alt px-2 py-0.5 text-[11px] font-medium text-muted">
                           {step.timeframe}
                         </span>
                       )}
                     </div>
                     {isHome ? (
-                      <p className="mt-2 line-clamp-3 text-sm text-zinc-600 dark:text-zinc-300">
+                      <p className="mt-2 line-clamp-3 text-sm text-secondary">
                         {step.short}
                       </p>
                     ) : (
                       <>
-                        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                        <p className="mt-2 text-sm leading-relaxed text-secondary">
                           {step.long}
                         </p>
-                        <ul className="mt-2 space-y-1.5 text-sm text-zinc-600 dark:text-zinc-300">
+                        <ul className="mt-2 space-y-1.5 text-sm text-secondary">
                           {step.bullets.map((bullet) => (
                             <li key={bullet} className="flex gap-2">
-                              <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                              <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-muted" />
                               <span>{bullet}</span>
                             </li>
                           ))}
@@ -110,7 +110,7 @@ export function HowItWorksTiles({ variant, steps = HOW_IT_WORKS_STEPS }: HowItWo
           <div className="mt-8 text-center">
             <Link
               href="/how-it-works"
-              className="text-sm font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
+              className="text-sm font-medium text-secondary underline hover:text-primary transition-colors"
             >
               Learn more about the process
             </Link>

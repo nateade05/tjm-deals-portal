@@ -6,7 +6,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
 }
 
-type Variant = 'primary' | 'outline' | 'ghost' | 'whatsapp';
+type Variant = 'primary' | 'outline' | 'ghost' | 'gold' | 'whatsapp';
 type Size = 'sm' | 'md';
 
 type ButtonProps = PropsWithChildren<
@@ -26,17 +26,19 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const base =
-    'inline-flex items-center justify-center rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gold disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variants: Record<Variant, string> = {
     primary:
-      'bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200',
+      'bg-ink text-surface hover:bg-primary focus-visible:ring-ink',
     outline:
-      'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800',
+      'border border-border-strong bg-surface text-primary hover:bg-surface-alt focus-visible:ring-border-strong',
     ghost:
-      'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
+      'text-primary hover:bg-surface-alt focus-visible:ring-border-subtle',
+    gold:
+      'bg-gold text-surface hover:bg-gold-hover focus-visible:ring-gold',
     whatsapp:
-      'bg-[#25D366] text-white hover:bg-[#20bd5a] dark:bg-[#22c35e] dark:text-slate-950 dark:hover:bg-[#1ba850]',
+      'bg-[#25D366] text-white hover:bg-[#20bd5a] focus-visible:ring-[#25D366]',
   };
 
   const sizes: Record<Size, string> = {
@@ -60,4 +62,3 @@ export function Button({
     </button>
   );
 }
-

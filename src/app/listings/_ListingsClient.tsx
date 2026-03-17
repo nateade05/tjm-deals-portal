@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ListingCard } from '@/components/ListingCard';
 import { EmptyState } from '@/components/EmptyState';
-import { LeadModal } from '@/components/LeadModal';
+import { LeadModal } from '@/components/LeadModalLazy';
 import type { Listing } from '@/lib/supabase/types';
 import { formatGBP } from '@/lib/format';
 import { CAR_MAKES } from '@/lib/carOptions';
@@ -39,17 +39,17 @@ export function ListingsClient({ initialListings, coverUrls }: ListingsClientPro
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
+      <div className="rounded-xl border border-border-subtle bg-surface p-4 sm:p-5">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label htmlFor="filter-make" className="block text-xs font-medium text-zinc-500">
+            <label htmlFor="filter-make" className="block text-xs font-medium text-muted">
               Make
             </label>
             <select
               id="filter-make"
               value={makeFilter}
               onChange={(e) => setMakeFilter(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             >
               <option value="">All makes</option>
               {CAR_MAKES.map((make) => (
@@ -60,14 +60,14 @@ export function ListingsClient({ initialListings, coverUrls }: ListingsClientPro
             </select>
           </div>
           <div>
-            <label htmlFor="filter-max-price" className="block text-xs font-medium text-zinc-500">
+            <label htmlFor="filter-max-price" className="block text-xs font-medium text-muted">
               Max price
             </label>
             <select
               id="filter-max-price"
               value={maxPriceFilter === '' ? '' : String(maxPriceFilter)}
               onChange={(e) => setMaxPriceFilter(e.target.value ? Number(e.target.value) : '')}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             >
               <option value="">Any price</option>
               {MAX_PRICE_OPTIONS.map((p) => (

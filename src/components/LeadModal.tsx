@@ -117,15 +117,15 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal aria-labelledby="lead-modal-title">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 id="lead-modal-title" className="text-lg font-semibold text-zinc-900">
+          <h2 id="lead-modal-title" className="text-lg font-semibold text-primary">
             Chat on WhatsApp
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+            className="rounded-full p-1 text-muted hover:bg-surface-alt hover:text-secondary transition-colors"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -140,7 +140,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="lead-name" className="block text-sm font-medium text-zinc-700">
+            <label htmlFor="lead-name" className="block text-sm font-medium text-secondary">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -148,12 +148,12 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="name"
               type="text"
               required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.name && <p className="mt-0.5 text-xs text-red-600">{errors.name}</p>}
           </div>
           <div>
-            <label htmlFor="lead-phone" className="block text-sm font-medium text-zinc-700">
+            <label htmlFor="lead-phone" className="block text-sm font-medium text-secondary">
               Phone <span className="text-red-500">*</span>
             </label>
             <input
@@ -161,12 +161,12 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="phone"
               type="tel"
               required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.phone && <p className="mt-0.5 text-xs text-red-600">{errors.phone}</p>}
           </div>
           <div>
-            <label htmlFor="lead-email" className="block text-sm font-medium text-zinc-700">
+            <label htmlFor="lead-email" className="block text-sm font-medium text-secondary">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -174,12 +174,12 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="email"
               type="email"
               required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.email && <p className="mt-0.5 text-xs text-red-600">{errors.email}</p>}
           </div>
           <div>
-            <label htmlFor="lead-country" className="block text-sm font-medium text-zinc-700">
+            <label htmlFor="lead-country" className="block text-sm font-medium text-secondary">
               Country <span className="text-red-500">*</span>
             </label>
             <input
@@ -187,23 +187,23 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="country"
               type="text"
               required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.country && <p className="mt-0.5 text-xs text-red-600">{errors.country}</p>}
           </div>
           <div>
-            <label htmlFor="lead-company" className="block text-sm font-medium text-zinc-700">
+            <label htmlFor="lead-company" className="block text-sm font-medium text-secondary">
               Company
             </label>
             <input
               id="lead-company"
               name="company"
               type="text"
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
           </div>
           <div>
-            <label htmlFor="lead-website" className="block text-sm font-medium text-zinc-700">
+            <label htmlFor="lead-website" className="block text-sm font-medium text-secondary">
               Website
             </label>
             <input
@@ -211,7 +211,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="website"
               type="url"
               placeholder="https://"
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.website && <p className="mt-0.5 text-xs text-red-600">{errors.website}</p>}
           </div>
@@ -219,7 +219,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-full border border-zinc-300 bg-white py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              className="flex-1 rounded-full border border-border-strong bg-surface py-2.5 text-sm font-medium text-secondary hover:bg-surface-alt transition-colors"
             >
               Cancel
             </button>

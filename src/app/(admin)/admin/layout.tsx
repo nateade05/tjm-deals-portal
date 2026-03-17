@@ -20,17 +20,17 @@ export default async function AdminLayout({
   const { user } = await requireAdminSession();
 
   return (
-    <div className="min-h-screen bg-zinc-50 py-6 sm:py-8">
+    <div className="min-h-screen bg-background py-6 sm:py-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:gap-6">
         {/* Sidebar (desktop) */}
-        <aside className="hidden w-52 flex-shrink-0 rounded-2xl border border-zinc-200 bg-white p-4 sm:block">
-          <div className="mb-4 text-sm font-semibold text-zinc-900">Admin</div>
+        <aside className="hidden w-52 flex-shrink-0 rounded-2xl border border-border-subtle bg-surface p-4 sm:block">
+          <div className="mb-4 text-sm font-semibold text-primary">Admin</div>
           <nav className="space-y-1 text-sm">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block rounded-lg px-3 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                className="block rounded-lg px-3 py-2 text-secondary hover:bg-surface-alt hover:text-primary transition-colors"
               >
                 {item.label}
               </Link>
@@ -39,25 +39,25 @@ export default async function AdminLayout({
         </aside>
 
         {/* Main card */}
-        <div className="flex min-h-[70vh] flex-1 flex-col rounded-2xl border border-zinc-200 bg-white">
-          <header className="border-b border-zinc-200 px-4 py-3 sm:px-6">
+        <div className="flex min-h-[70vh] flex-1 flex-col rounded-2xl border border-border-subtle bg-surface">
+          <header className="border-b border-border-subtle px-4 py-3 sm:px-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-sm font-semibold text-zinc-900">
+                <div className="text-sm font-semibold text-primary">
                   TJMotors
                 </div>
-                <div className="mt-0.5 text-xs text-zinc-500">
+                <div className="mt-0.5 text-xs text-muted">
                   {user.email ?? 'Admin user'}
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 {/* Mobile nav */}
-                <nav className="flex gap-2 text-xs text-zinc-600 sm:hidden">
+                <nav className="flex gap-2 text-xs text-secondary sm:hidden">
                   {navItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="rounded-full border border-zinc-200 px-3 py-1 hover:bg-zinc-50 hover:text-zinc-900"
+                      className="rounded-full border border-border-subtle px-3 py-1 hover:bg-surface-alt hover:text-primary"
                     >
                       {item.label}
                     </Link>

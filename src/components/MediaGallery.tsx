@@ -33,7 +33,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-zinc-100">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-alt">
         {currentImage && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -47,7 +47,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             <button
               type="button"
               onClick={goPrev}
-              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
+              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/95 text-secondary shadow-sm hover:bg-surface focus:outline-none focus:ring-2 focus:ring-gold transition-colors"
               aria-label="Previous image"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -57,7 +57,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             <button
               type="button"
               onClick={goNext}
-              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
+              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/95 text-secondary shadow-sm hover:bg-surface focus:outline-none focus:ring-2 focus:ring-gold transition-colors"
               aria-label="Next image"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -76,8 +76,8 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
               onClick={() => setSelectedIndex(i)}
               className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
                 selectedIndex === i
-                  ? 'border-zinc-900'
-                  : 'border-transparent hover:border-zinc-300'
+                  ? 'border-gold'
+                  : 'border-transparent hover:border-border-subtle'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,7 +92,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
       )}
       {videoUrl && (
         <div className="rounded-xl overflow-hidden bg-black">
-          <p className="bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700">
+          <p className="bg-surface-alt px-4 py-2 text-sm font-medium text-secondary">
             Walkaround video
           </p>
           <video

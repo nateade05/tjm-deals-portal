@@ -21,13 +21,13 @@ function getCategoryBadge(category: Listing['category']) {
     return {
       label: 'IN STOCK',
       badgeClass:
-        'bg-transparent text-slate-700 border-2 border-slate-400 dark:text-slate-200 dark:border-slate-500',
+        'bg-transparent text-secondary border-2 border-border-strong',
     };
   }
   return {
     label: 'OPPORTUNITY',
     badgeClass:
-      'bg-transparent text-yellow-500 border-2 border-yellow-500 dark:text-yellow-600 dark:border-yellow-600',
+      'bg-transparent text-gold border-2 border-gold',
   };
 }
 
@@ -132,18 +132,18 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold text-primary sm:text-3xl">
                 {title}
               </h1>
               <CopyLinkButton path={`/listings/${id}`} />
             </div>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted">
               Listed {timeAgo(listing.listed_at)}
             </p>
             <MediaGallery images={images} videoUrl={videoUrl} />
           </div>
           <div className="flex flex-col gap-4">
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="relative rounded-xl border border-border-subtle bg-surface p-5 shadow-sm">
               {(() => {
                 const badge = getCategoryBadge(listing.category);
                 return (
@@ -156,7 +156,7 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
                 );
               })()}
               <div className="pt-6 sm:pt-8">
-                <h2 className="text-lg font-semibold text-zinc-900">
+                <h2 className="text-lg font-semibold text-primary">
                   Vehicle details
                 </h2>
                 <div className="mt-4">
@@ -176,9 +176,9 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
                   {listing.fuel && <StatRow label="Fuel" value={listing.fuel} />}
                 </div>
                 {listing.description && (
-                  <div className="mt-4 border-t border-zinc-100 pt-4">
-                    <h3 className="text-sm font-semibold text-zinc-900">Description</h3>
-                    <p className="mt-2 text-base text-zinc-700">{listing.description}</p>
+                  <div className="mt-4 border-t border-border-subtle pt-4">
+                    <h3 className="text-sm font-semibold text-primary">Description</h3>
+                    <p className="mt-2 text-base text-secondary">{listing.description}</p>
                   </div>
                 )}
                 <ListingDetailCTA

@@ -75,19 +75,19 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold text-primary sm:text-3xl">
                 Listings
               </h1>
               <p className="mt-1 text-sm text-zinc-600">
                 Live stock and upcoming opportunities from Singapore to the UK.
               </p>
             </div>
-            <Suspense fallback={<div className="h-10 w-32 animate-pulse rounded-lg bg-zinc-200" />}>
+            <Suspense fallback={<div className="h-10 w-32 animate-pulse rounded-lg bg-surface-alt" />}>
               <CategoryTabs />
             </Suspense>
           </div>
 
-          <Suspense fallback={<div className="text-sm text-zinc-500">Loading listings…</div>}>
+          <Suspense fallback={<div className="text-sm text-muted">Loading listings…</div>}>
             <ListingsClient initialListings={listings} coverUrls={coverUrls} />
           </Suspense>
         </div>

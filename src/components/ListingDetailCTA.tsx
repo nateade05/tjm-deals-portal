@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LeadModal, type ListingInfo } from '@/components/LeadModal';
+import { LeadModal, type ListingInfo } from '@/components/LeadModalLazy';
 import { Button } from '@/components/ui/Button';
 
 interface ListingDetailCTAProps {

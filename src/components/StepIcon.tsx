@@ -5,7 +5,7 @@ interface StepIconProps {
 }
 
 export function StepIcon({ icon }: StepIconProps) {
-  const common = 'h-6 w-6 stroke-current text-slate-900 dark:text-slate-100';
+  const common = 'h-6 w-6 stroke-current text-primary';
 
   switch (icon) {
     case 'search':

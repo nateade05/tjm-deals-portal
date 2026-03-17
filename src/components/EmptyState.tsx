@@ -8,8 +8,8 @@ interface EmptyStateProps {
 
 export function EmptyState({ onOpenLead }: EmptyStateProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50/50 px-6 py-12 text-center dark:border-slate-800 dark:bg-slate-900/80">
-      <p className="text-slate-600 dark:text-slate-200">
+    <div className="rounded-xl border border-border-subtle bg-surface-alt/80 px-6 py-12 text-center">
+      <p className="text-secondary">
         More cars coming soon — check back shortly or request a specific model.
       </p>
       {onOpenLead && (
