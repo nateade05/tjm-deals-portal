@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BUSINESS_WHATSAPP_E164 } from '@/lib/constants';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import { formatGBP } from '@/lib/format';
@@ -56,7 +57,7 @@ function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?:
 
   if (context === 'listing' && listing) {
     const lines: string[] = [
-      `Hi TJMotors, my name is ${name}. I'm interested in the ${carTitle} (Listing ID: ${listing.id}). Could you please confirm availability and share the next steps? Thank you.`,
+      `Hi TJ Motors, my name is ${name}. I'm interested in the ${carTitle} (Listing ID: ${listing.id}). Could you please confirm availability and share the next steps? Thank you.`,
     ];
     if (listing.price_landed_gbp != null) {
       lines.push(`Your price: ${formatGBP(listing.price_landed_gbp)}`);
@@ -141,8 +142,16 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal aria-labelledby="lead-modal-title">
+  /** Portal to body so listing pages (modal inside main) still stack above later siblings e.g. More listings. */
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+      role="dialog"
+      aria-modal
+      aria-labelledby="lead-modal-title"
+    >
       <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 id="lead-modal-title" className="text-lg font-semibold text-primary">
@@ -302,7 +311,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               inputMode="url"
               autoComplete="url"
               maxLength={2000}
-              placeholder="e.g. namotors.co.uk"
+              placeholder="e.g. mymotors.co.uk"
               className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.website && <p className="mt-0.5 text-xs text-red-600">{errors.website}</p>}
@@ -325,6 +334,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

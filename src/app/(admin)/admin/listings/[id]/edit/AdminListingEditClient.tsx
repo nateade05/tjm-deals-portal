@@ -7,10 +7,10 @@ import { ListingForm } from '@/components/ListingForm';
 import { MediaUploader } from '@/components/MediaUploader';
 import { AdminListingMediaList } from '@/components/AdminListingMediaList';
 import { AdminPublicLink } from '@/components/AdminPublicLink';
+import { AdminSaleAttributionForm } from '@/components/admin/AdminSaleAttributionForm';
 import { updateListingFromForm, setListingStatus } from '@/lib/actions/listings';
 import { noopCreateAction } from '@/lib/actions/listings';
-import type { Listing } from '@/lib/supabase/types';
-import type { ListingMedia } from '@/lib/supabase/types';
+import type { LeadAttributionPick, Listing, ListingMedia, SalesAttribution } from '@/lib/supabase/types';
 
 function computeTitle(listing: Listing): string {
   return [listing.year, listing.make, listing.model].filter(Boolean).map(String).join(' ').trim() || listing.title || '—';
@@ -19,11 +19,20 @@ function computeTitle(listing: Listing): string {
 interface AdminListingEditClientProps {
   listing: Listing;
   mediaWithUrls: (ListingMedia & { signedUrl?: string })[];
+  listingLabel: string;
+  leadsAttributionPool: LeadAttributionPick[];
+  saleAttribution: SalesAttribution | null;
 }
 
 const SAVE_TOAST_MS = 4200;
 
-export function AdminListingEditClient({ listing: initialListing, mediaWithUrls }: AdminListingEditClientProps) {
+export function AdminListingEditClient({
+  listing: initialListing,
+  mediaWithUrls,
+  listingLabel,
+  leadsAttributionPool,
+  saleAttribution,
+}: AdminListingEditClientProps) {
   const router = useRouter();
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [saveToastOpen, setSaveToastOpen] = useState(false);
@@ -139,6 +148,15 @@ export function AdminListingEditClient({ listing: initialListing, mediaWithUrls 
           )}
         </div>
       )}
+
+      {/* Sale attribution */}
+      <AdminSaleAttributionForm
+        fixedListingId={initialListing.id}
+        fixedListingLabel={listingLabel}
+        listingOptions={[]}
+        leadsPool={leadsAttributionPool}
+        existing={saleAttribution}
+      />
 
       {/* Public link */}
       <section>

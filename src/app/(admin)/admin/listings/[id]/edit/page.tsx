@@ -1,9 +1,17 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { fetchSaleAttributionByListingId } from '@/lib/actions/attribution';
+import { mergeLeadsAttributionPool } from '@/lib/leadsAttributionMerge';
+import { fetchLeadsForListing, fetchLeadsRecentForPicker } from '@/lib/actions/leads';
 import { fetchListingById, fetchListingMedia } from '@/lib/actions/listings';
 import { supabaseServer } from '@/lib/supabase/server';
 import { AdminListingEditClient } from './AdminListingEditClient';
-import type { ListingMedia } from '@/lib/supabase/types';
+import type { Listing, ListingMedia } from '@/lib/supabase/types';
+
+function computeListingLabel(listing: Listing): string {
+  const auto = [listing.year, listing.make, listing.model].filter(Boolean).map(String).join(' ').trim();
+  return auto || listing.title;
+}
 
 const SIGNED_URL_EXPIRY = 60 * 60; // 1 hour
 
@@ -27,6 +35,13 @@ export default async function AdminListingsEditPage({ params }: PageProps) {
     })
   );
 
+  const [saleAttribution, leadsForListing, recentLeads] = await Promise.all([
+    fetchSaleAttributionByListingId(id),
+    fetchLeadsForListing(id),
+    fetchLeadsRecentForPicker(200),
+  ]);
+  const leadsAttributionPool = mergeLeadsAttributionPool(leadsForListing, recentLeads);
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-2">
@@ -36,7 +51,13 @@ export default async function AdminListingsEditPage({ params }: PageProps) {
       </div>
       <h1 className="text-xl font-semibold text-zinc-900 sm:text-2xl">Edit listing</h1>
 
-      <AdminListingEditClient listing={listing} mediaWithUrls={mediaWithUrls} />
+      <AdminListingEditClient
+        listing={listing}
+        mediaWithUrls={mediaWithUrls}
+        listingLabel={computeListingLabel(listing)}
+        leadsAttributionPool={leadsAttributionPool}
+        saleAttribution={saleAttribution}
+      />
     </div>
   );
 }

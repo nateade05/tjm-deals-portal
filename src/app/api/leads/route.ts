@@ -85,6 +85,7 @@ export async function POST(request: Request) {
       country: clip(String(body.country).trim(), LIMITS.country),
       company: body.company != null ? clip(String(body.company).trim(), LIMITS.company) || null : null,
       website: body.website != null ? clip(String(body.website).trim(), LIMITS.website) || null : null,
+      source: 'website' as const,
     };
 
     const service = supabaseServerServiceRole();

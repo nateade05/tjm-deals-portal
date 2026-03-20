@@ -180,14 +180,74 @@ export async function setListingStatus(
   id: string,
   status: ListingStatus
 ): Promise<{ ok: true } | { error: string }> {
+  if (status !== 'draft' && status !== 'live') {
+    return { error: 'Only draft or live can be set from the status menu.' };
+  }
   const supabase = await supabaseServer();
+  const { data: row } = await supabase.from('listings').select('status').eq('id', id).maybeSingle();
+  const current = row?.status as ListingStatus | undefined;
+  if (current === 'sold' || current === 'archived') {
+    return { error: 'Cannot change status from sold or archived here.' };
+  }
   const { error } = await supabase.from('listings').update({ status }).eq('id', id);
   if (error) return { error: error.message };
   revalidatePath('/admin/listings');
   revalidatePath(`/admin/listings/${id}/edit`);
+  revalidatePath('/admin/attribution');
   revalidatePath('/');
   revalidatePath('/listings');
   revalidatePath(`/listings/${id}`);
+  return { ok: true };
+}
+
+/** Draft or live → sold (after optional attribution modal). */
+export async function markListingAsSold(listingId: string): Promise<{ ok: true } | { error: string }> {
+  const supabase = await supabaseServer();
+  const { data: row, error: fetchErr } = await supabase
+    .from('listings')
+    .select('status')
+    .eq('id', listingId)
+    .maybeSingle();
+  if (fetchErr || !row) return { error: 'Listing not found.' };
+  const st = row.status as ListingStatus;
+  if (st !== 'live' && st !== 'draft') {
+    return { error: 'Only draft or live listings can be marked sold.' };
+  }
+  const { error } = await supabase.from('listings').update({ status: 'sold' }).eq('id', listingId);
+  if (error) return { error: error.message };
+  revalidatePath('/admin/listings');
+  revalidatePath(`/admin/listings/${listingId}/edit`);
+  revalidatePath('/admin/attribution');
+  revalidatePath('/');
+  revalidatePath('/listings');
+  revalidatePath(`/listings/${listingId}`);
+  return { ok: true };
+}
+
+/** Only draft or sold (not live — unpublish to draft first). */
+export async function archiveListing(listingId: string): Promise<{ ok: true } | { error: string }> {
+  const supabase = await supabaseServer();
+  const { data: row, error: fetchErr } = await supabase
+    .from('listings')
+    .select('status')
+    .eq('id', listingId)
+    .maybeSingle();
+  if (fetchErr || !row) return { error: 'Listing not found.' };
+  const st = row.status as ListingStatus;
+  if (st !== 'draft' && st !== 'sold') {
+    return {
+      error:
+        'Only draft or sold listings can be archived. Set a live listing to draft first (status column).',
+    };
+  }
+  const { error } = await supabase.from('listings').update({ status: 'archived' }).eq('id', listingId);
+  if (error) return { error: error.message };
+  revalidatePath('/admin/listings');
+  revalidatePath(`/admin/listings/${listingId}/edit`);
+  revalidatePath('/admin/attribution');
+  revalidatePath('/');
+  revalidatePath('/listings');
+  revalidatePath(`/listings/${listingId}`);
   return { ok: true };
 }
 

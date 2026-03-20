@@ -33,7 +33,7 @@ export function YourPriceLabel({ value }: YourPriceLabelProps) {
   return (
     <div className="border-b border-border-subtle/80 py-3.5 last:border-0 sm:py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Your price</span>
           <div
             ref={rootRef}
@@ -53,9 +53,22 @@ export function YourPriceLabel({ value }: YourPriceLabelProps) {
               aria-label="About your price"
               onClick={() => setOpen((v) => !v)}
               onFocus={() => setOpen(true)}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle/80 bg-surface text-[10px] font-bold text-muted/90 transition-colors hover:border-gold/35 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              className="inline-flex h-[1.375rem] w-[1.375rem] shrink-0 items-center justify-center rounded-full border border-border-subtle/45 text-muted/55 transition-[color,border-color,background-color] duration-200 hover:border-gold/30 hover:bg-gold/[0.06] hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-1 focus-visible:ring-offset-surface active:scale-[0.97]"
             >
-              i
+              <svg
+                viewBox="0 0 16 16"
+                aria-hidden
+                className="h-[11px] w-[11px]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="8" cy="8" r="6.25" />
+                <path d="M8 7.15V11" />
+                <circle cx="8" cy="5.15" r="0.55" fill="currentColor" stroke="none" />
+              </svg>
             </button>
             <div
               id="your-price-annotation"
