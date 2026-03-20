@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { TopNav } from '@/components/TopNav';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -73,9 +72,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
             </p>
           </header>
 
-          <Suspense fallback={<div className="h-36 animate-pulse rounded-2xl bg-surface-alt/80" />}>
-            <ListingsClient initialListings={listings} coverUrls={coverUrls} />
-          </Suspense>
+          <ListingsClient initialListings={listings} coverUrls={coverUrls} />
         </div>
       </main>
       <SiteFooter />

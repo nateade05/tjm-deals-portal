@@ -38,7 +38,7 @@
   --ink: #191919;
 }
 
-/* Smoother scrolling and optional animation reduction for performance/accessibility */
+/* Optional animation reduction for performance/accessibility */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

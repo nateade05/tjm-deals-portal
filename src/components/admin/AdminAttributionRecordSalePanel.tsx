@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { AdminSaleAttributionForm, type AdminSaleAttributionFormProps } from '@/components/admin/AdminSaleAttributionForm';
 
 type Props = {
@@ -14,6 +15,7 @@ export function AdminAttributionRecordSalePanel({
   defaultOpen,
   ...formProps
 }: Props) {
+  const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +57,14 @@ export function AdminAttributionRecordSalePanel({
 
       {open && (
         <div id="admin-record-sale-section" ref={sectionRef} className="scroll-mt-6">
-          <AdminSaleAttributionForm {...formProps} />
+          <AdminSaleAttributionForm
+            {...formProps}
+            onSaveSuccess={() => {
+              setOpen(false);
+              // Drop query params so defaultOpen doesn’t re-open the panel after refresh
+              router.replace('/admin/attribution');
+            }}
+          />
         </div>
       )}
     </div>

@@ -25,27 +25,21 @@ export function TopNav() {
               priority
             />
           </Link>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden items-center gap-5 sm:flex">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-5">
               <Link
                 href="/listings"
-                className="text-sm font-medium text-secondary hover:text-primary whitespace-nowrap transition-colors"
+                className="min-h-[44px] shrink-0 content-center px-1 text-xs font-medium text-secondary hover:text-primary whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 sm:min-h-0 sm:px-0 sm:text-sm sm:py-1"
               >
                 Listings
               </Link>
               <Link
                 href="/how-it-works"
-                className="text-sm font-medium text-secondary hover:text-primary whitespace-nowrap transition-colors"
+                className="min-h-[44px] shrink-0 content-center px-1 text-xs font-medium text-secondary hover:text-primary whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 sm:min-h-0 sm:px-0 sm:text-sm sm:py-1"
               >
                 How it works
               </Link>
             </div>
-            <Link
-              href="/listings"
-              className="text-sm font-medium text-secondary hover:text-primary sm:hidden whitespace-nowrap transition-colors"
-            >
-              Listings
-            </Link>
             <Button
               type="button"
               variant="whatsapp"

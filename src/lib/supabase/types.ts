@@ -2,7 +2,7 @@ export type ListingCategory = 'in_stock' | 'opportunity';
 
 export type PricingCategory = 'premium_economy' | 'economy' | 'premium_suvs' | 'luxury';
 
-export type ListingStatus = 'draft' | 'live' | 'sold' | 'archived';
+export type ListingStatus = 'draft' | 'live' | 'sold' | 'archived' | 'closed';
 
 export type ListingMediaType = 'image' | 'video';
 

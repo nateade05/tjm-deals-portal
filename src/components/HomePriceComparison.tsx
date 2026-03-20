@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { formatGBP } from '@/lib/format';
 
 /**
@@ -68,25 +68,13 @@ function getSavings(example: Example) {
   return { amount: diff, pct };
 }
 
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
 const fadeInUp = {
   hidden: { opacity: 0, y: 8 },
   visible: { opacity: 1, y: 0 },
   exit: { opacity: 0 },
 };
 
-function ImportPriceCountUp({
-  value,
-  delayMs,
-}: {
-  value: number;
-  delayMs: number;
-}) {
+function ImportPriceCountUpAnimated({ value, delayMs }: { value: number; delayMs: number }) {
   const [display, setDisplay] = useState('£0');
   const frameRef = useRef<number | null>(null);
 
@@ -119,14 +107,32 @@ function ImportPriceCountUp({
   return <>{display}</>;
 }
 
+function ImportPriceCountUp({
+  value,
+  delayMs,
+  reduceMotion,
+}: {
+  value: number;
+  delayMs: number;
+  reduceMotion: boolean;
+}) {
+  if (reduceMotion) {
+    return <>{formatGBP(value)}</>;
+  }
+  return <ImportPriceCountUpAnimated value={value} delayMs={delayMs} />;
+}
+
 /** Brush-style strike path: diagonal with slight curve, like a single brush stroke. pathLength=1 for easy dash animation. */
 const BRUSH_STRIKE_PATH =
   'M 2 18 C 28 8, 58 22, 98 14';
 
 function ComparisonModule() {
+  const reduceMotion = useReducedMotion() ?? false;
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tDur = (sec: number) => (reduceMotion ? 0.01 : sec);
+  const tDelay = (ms: number) => (reduceMotion ? 0 : ms / 1000);
 
   const advance = useCallback(() => {
     setIndex((i) => (i + 1) % EXAMPLES.length);
@@ -155,7 +161,7 @@ function ComparisonModule() {
           initial="hidden"
           animate="visible"
           exit="exit"
-          transition={{ duration: 0.45 }}
+          transition={{ duration: tDur(0.45) }}
           className="relative grid min-h-[320px] grid-cols-1 items-center gap-0 overflow-visible lg:grid-cols-[1.12fr_1fr] lg:gap-0"
         >
           {/* Image stage — above info card (z-30); controlled overlap so card stays readable */}
@@ -164,14 +170,14 @@ function ComparisonModule() {
               hidden: { opacity: 0, scale: 1 },
               visible: {
                 opacity: 1,
-                scale: 1.05,
+                scale: reduceMotion ? 1 : 1.05,
                 transition: {
-                  duration: DURATIONS.image,
-                  delay: STAGGER.image / 1000,
+                  duration: tDur(DURATIONS.image),
+                  delay: tDelay(STAGGER.image),
                   ease: EASE,
                 },
               },
-              exit: { opacity: 0, scale: 1, transition: { duration: 0.4 } },
+              exit: { opacity: 0, scale: 1, transition: { duration: tDur(0.4) } },
             }}
             initial="hidden"
             animate="visible"
@@ -201,8 +207,8 @@ function ComparisonModule() {
               initial="hidden"
               animate="visible"
               transition={{
-                duration: DURATIONS.ukLabel,
-                delay: STAGGER.image / 1000,
+                duration: tDur(DURATIONS.ukLabel),
+                delay: tDelay(STAGGER.image),
                 ease: EASE,
               }}
               className="text-xl font-semibold tracking-tight text-primary sm:text-2xl lg:ml-auto lg:max-w-xl"
@@ -216,8 +222,8 @@ function ComparisonModule() {
               initial="hidden"
               animate="visible"
               transition={{
-                duration: DURATIONS.ukLabel,
-                delay: STAGGER.ukLabel / 1000,
+                duration: tDur(DURATIONS.ukLabel),
+                delay: tDelay(STAGGER.ukLabel),
                 ease: EASE,
               }}
               className="mt-6 text-xs font-medium uppercase tracking-wider text-muted lg:ml-auto lg:block lg:max-w-xl"
@@ -229,8 +235,8 @@ function ComparisonModule() {
               initial="hidden"
               animate="visible"
               transition={{
-                duration: DURATIONS.ukPrice,
-                delay: STAGGER.ukPrice / 1000,
+                duration: tDur(DURATIONS.ukPrice),
+                delay: tDelay(STAGGER.ukPrice),
                 ease: EASE,
               }}
               className="relative mt-1 inline-block lg:ml-auto lg:block"
@@ -258,8 +264,8 @@ function ComparisonModule() {
                   initial={{ strokeDashoffset: 1 }}
                   animate={{ strokeDashoffset: 0 }}
                   transition={{
-                    duration: DURATIONS.strike,
-                    delay: STAGGER.strike / 1000,
+                    duration: tDur(DURATIONS.strike),
+                    delay: tDelay(STAGGER.strike),
                     ease: EASE,
                   }}
                 />
@@ -272,8 +278,8 @@ function ComparisonModule() {
               initial="hidden"
               animate="visible"
               transition={{
-                duration: DURATIONS.importLabel,
-                delay: STAGGER.importLabel / 1000,
+                duration: tDur(DURATIONS.importLabel),
+                delay: tDelay(STAGGER.importLabel),
                 ease: EASE,
               }}
               className="mt-6 text-xs font-medium uppercase tracking-wider text-muted lg:ml-auto lg:block lg:max-w-xl"
@@ -285,26 +291,30 @@ function ComparisonModule() {
               initial="hidden"
               animate="visible"
               transition={{
-                duration: DURATIONS.importPrice,
-                delay: STAGGER.importPrice / 1000,
+                duration: tDur(DURATIONS.importPrice),
+                delay: tDelay(STAGGER.importPrice),
                 ease: EASE,
               }}
               className="mt-1 font-bold text-gold text-3xl sm:text-4xl lg:ml-auto lg:block lg:w-full lg:text-right lg:text-[2.5rem]"
             >
-              <ImportPriceCountUp value={example.importPrice} delayMs={STAGGER.importPrice} />
+              <ImportPriceCountUp
+                value={example.importPrice}
+                delayMs={STAGGER.importPrice}
+                reduceMotion={reduceMotion}
+              />
             </motion.p>
 
             {/* Savings badge — scale + fade */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, scale: 0.9 },
-                visible: { opacity: 1, scale: 1 },
+                visible: { opacity: 1, scale: reduceMotion ? 1 : 1 },
               }}
               initial="hidden"
               animate="visible"
               transition={{
-                duration: DURATIONS.savings,
-                delay: STAGGER.savings / 1000,
+                duration: tDur(DURATIONS.savings),
+                delay: tDelay(STAGGER.savings),
                 ease: EASE,
               }}
               className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg bg-olive-tint px-4 py-2 lg:ml-auto lg:self-end"
@@ -334,12 +344,15 @@ function ComparisonModule() {
                       timeoutRef.current = setTimeout(advance, DURATION_MS);
                     }
                   }}
-                  className={`h-1.5 min-h-[6px] rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 ${
-                    i === index
-                      ? 'w-7 bg-gold shadow-sm'
-                      : 'w-1.5 bg-muted/40 hover:bg-muted/70'
-                  }`}
-                />
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 hover:bg-surface-alt/40"
+                >
+                  <span
+                    className={`block rounded-full transition-all ${
+                      i === index ? 'h-1.5 w-7 bg-gold shadow-sm' : 'h-1.5 w-1.5 bg-muted/40 hover:bg-muted/70'
+                    }`}
+                    aria-hidden
+                  />
+                </button>
               ))}
             </div>
           </div>

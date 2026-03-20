@@ -150,7 +150,7 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
               </div>
               <p className="text-[13px] font-medium text-muted">Listed {timeAgo(listing.listed_at)}</p>
             </header>
-            <MediaGallery images={images} videoUrl={videoUrl} />
+            <MediaGallery key={listing.id} images={images} videoUrl={videoUrl} />
           </article>
           <aside className="min-w-0 lg:sticky lg:top-20">
             <div className="relative rounded-2xl border border-border-subtle/80 bg-surface p-5 shadow-md ring-1 ring-black/[0.05] sm:p-6">

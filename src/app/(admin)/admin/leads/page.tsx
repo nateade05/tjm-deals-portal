@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { fetchLeads } from '@/lib/actions/leads';
+import { AdminLeadRecordSaleButton } from '@/components/admin/AdminLeadRecordSaleButton';
 import { LeadSourceBadge } from '@/components/admin/LeadSourceBadge';
 import type { Lead, LeadStatus } from '@/lib/supabase/types';
 
@@ -144,16 +145,11 @@ export default async function AdminLeadsPage() {
                     )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">
-                    <Link
-                      href={
-                        row.listing_id
-                          ? `/admin/attribution?listingId=${row.listing_id}&leadId=${row.id}`
-                          : `/admin/attribution?leadId=${row.id}`
-                      }
-                      className="text-xs font-medium text-sky-700 underline-offset-2 hover:underline"
-                    >
-                      Record sale
-                    </Link>
+                    <AdminLeadRecordSaleButton
+                      leadId={row.id}
+                      listingId={row.listing_id}
+                      leadLabel={row.name}
+                    />
                   </td>
                 </tr>
               ))

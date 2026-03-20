@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { BRAND_SHORT } from '@/lib/constants';
 import { Button } from '@/components/ui/Button';
 import { LeadModal } from '@/components/LeadModalLazy';
 

@@ -41,6 +41,7 @@ export function AdminListingsFilters({ status, category }: Props) {
         <option value="draft">Draft</option>
         <option value="live">Live</option>
         <option value="sold">Sold</option>
+        <option value="closed">Closed</option>
         <option value="archived">Archived</option>
       </select>
       <select

@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { archiveListing } from '@/lib/actions/listings';
-import { AdminMarkSoldModal } from '@/components/admin/AdminMarkSoldModal';
+import { AdminMarkUnsoldModal } from '@/components/admin/AdminMarkUnsoldModal';
+import { AdminRecordSaleModal } from '@/components/admin/AdminRecordSaleModal';
 import type { ListingStatus } from '@/lib/supabase/types';
 
 interface AdminListingsRowActionsProps {
@@ -18,6 +19,21 @@ function SoldIcon({ className }: { className?: string }) {
     <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Undo / revert sold */
+function UnsoldIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 010 11H11"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
@@ -58,9 +74,11 @@ export function AdminListingsRowActions({ listingId, status, listingTitle }: Adm
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [soldOpen, setSoldOpen] = useState(false);
+  const [unsoldOpen, setUnsoldOpen] = useState(false);
 
   const canMarkSold = status === 'draft' || status === 'live';
-  const canArchive = status === 'draft' || status === 'sold';
+  const canMarkUnsold = status === 'sold';
+  const canArchive = status === 'draft' || status === 'sold' || status === 'closed';
   const archiveDisabled = status === 'live' || status === 'archived';
   const showArchiveButton = status !== 'archived';
 
@@ -91,6 +109,17 @@ export function AdminListingsRowActions({ listingId, status, listingTitle }: Adm
             <SoldIcon />
           </button>
         )}
+        {canMarkUnsold && (
+          <button
+            type="button"
+            title="Mark as unsold"
+            aria-label="Mark as unsold"
+            onClick={() => setUnsoldOpen(true)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-900 transition-colors hover:bg-amber-100"
+          >
+            <UnsoldIcon />
+          </button>
+        )}
         {showArchiveButton && (
           <button
             type="button"
@@ -108,11 +137,17 @@ export function AdminListingsRowActions({ listingId, status, listingTitle }: Adm
           </button>
         )}
       </div>
-      <AdminMarkSoldModal
+      <AdminRecordSaleModal
         open={soldOpen}
         onClose={() => setSoldOpen(false)}
         listingId={listingId}
         listingTitleFallback={listingTitle}
+      />
+      <AdminMarkUnsoldModal
+        open={unsoldOpen}
+        onClose={() => setUnsoldOpen(false)}
+        listingId={listingId}
+        listingTitle={listingTitle}
       />
     </>
   );

@@ -3,39 +3,53 @@
 import { useEffect, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { fetchMarkSoldModalData } from '@/lib/actions/attribution';
+import {
+  fetchRecordSaleModalData,
+  type RecordSaleModalData,
+} from '@/lib/actions/attribution';
 import { markListingAsSold } from '@/lib/actions/listings';
 import { AdminSaleAttributionForm } from '@/components/admin/AdminSaleAttributionForm';
-import type { LeadAttributionPick } from '@/lib/supabase/types';
 
-interface AdminMarkSoldModalProps {
+export interface AdminRecordSaleModalProps {
   open: boolean;
   onClose: () => void;
-  listingId: string;
-  /** Shown while loading or if fetch fails */
-  listingTitleFallback: string;
+  /** From listings row — vehicle is fixed. */
+  listingId?: string;
+  /** From leads row — buyer is fixed in the form. */
+  leadId?: string;
+  /** Shown while loading (listing-first). */
+  listingTitleFallback?: string;
+  /** Shown while loading / header for lead-first. */
+  leadNameFallback?: string;
 }
 
-export function AdminMarkSoldModal({
+export function AdminRecordSaleModal({
   open,
   onClose,
   listingId,
-  listingTitleFallback,
-}: AdminMarkSoldModalProps) {
+  leadId,
+  listingTitleFallback = '',
+  leadNameFallback = '',
+}: AdminRecordSaleModalProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [data, setData] = useState<{
-    listingLabel: string;
-    leadsPool: LeadAttributionPick[];
-  } | null>(null);
+  const [data, setData] = useState<RecordSaleModalData | null>(null);
+  const [markSoldTargetId, setMarkSoldTargetId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
+      /* eslint-disable react-hooks/set-state-in-effect -- clear modal when closed */
       setData(null);
       setFetchError(null);
       setActionError(null);
+      setMarkSoldTargetId(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
+      return;
+    }
+    if (!listingId && !leadId) {
+      setFetchError('Missing listing or lead.');
       return;
     }
     let cancelled = false;
@@ -43,23 +57,41 @@ export function AdminMarkSoldModal({
       setFetchError(null);
       setActionError(null);
       setData(null);
-      const d = await fetchMarkSoldModalData(listingId);
+      setMarkSoldTargetId(null);
+      let d = await fetchRecordSaleModalData({ listingId, leadId });
+      if (cancelled) return;
+      if (!d && listingId && leadId) {
+        d = await fetchRecordSaleModalData({ leadId });
+      }
       if (cancelled) return;
       if (!d) {
-        setFetchError('This listing cannot be marked sold (only draft or live).');
+        if (listingId && !leadId) {
+          setFetchError('This listing cannot be marked sold (only draft or live).');
+        } else if (leadId) {
+          setFetchError('Could not load this lead or sale data.');
+        } else {
+          setFetchError('Could not load sale data.');
+        }
         return;
       }
       setData(d);
+      if (d.listingFixed) {
+        setMarkSoldTargetId(d.listingFixed.id);
+      } else if (d.suggestedListingId) {
+        setMarkSoldTargetId(d.suggestedListingId);
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [open, listingId]);
+  }, [open, listingId, leadId]);
 
   function handleMarkSoldWithoutAttribution() {
+    const id = markSoldTargetId?.trim();
+    if (!id) return;
     setActionError(null);
     startTransition(async () => {
-      const r = await markListingAsSold(listingId);
+      const r = await markListingAsSold(id);
       if ('error' in r) {
         setActionError(r.error);
         return;
@@ -70,17 +102,28 @@ export function AdminMarkSoldModal({
   }
 
   const loading = open && data === null && fetchError === null;
+  const canSkipAttribution = Boolean(markSoldTargetId?.trim());
 
   if (typeof document === 'undefined') return null;
-
   if (!open) return null;
+
+  const subtitle =
+    data?.listingFixed && data.leadFixed
+      ? `${data.listingFixed.label} · ${data.leadFixed.label}`
+      : data?.listingFixed
+        ? data.listingFixed.label
+        : data?.leadFixed
+          ? data.leadFixed.label
+          : leadId
+            ? leadNameFallback || 'Lead'
+            : listingTitleFallback;
 
   return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal
-      aria-labelledby="mark-sold-modal-title"
+      aria-labelledby="record-sale-modal-title"
       onClick={onClose}
     >
       <div
@@ -89,14 +132,16 @@ export function AdminMarkSoldModal({
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="mark-sold-modal-title" className="text-lg font-semibold text-zinc-900">
-              Mark as sold
+            <h2 id="record-sale-modal-title" className="text-lg font-semibold text-zinc-900">
+              Record sale
             </h2>
-            <p className="mt-1 text-sm text-zinc-600">
-              {data?.listingLabel ?? listingTitleFallback}
-            </p>
+            <p className="mt-1 text-sm text-zinc-600">{subtitle}</p>
             <p className="mt-2 text-xs text-zinc-500">
-              Save sale attribution now, mark sold and add details later from Attribution, or cancel.
+              {data?.listingFixed
+                ? 'Save attribution and mark sold, mark sold and add details later from Attribution, or cancel.'
+                : data?.leadFixed
+                  ? 'Choose the vehicle, add sale details, then save — or mark sold without attribution if you prefer.'
+                  : 'Add sale attribution and mark the listing sold, or cancel.'}
             </p>
           </div>
           <button
@@ -109,9 +154,7 @@ export function AdminMarkSoldModal({
           </button>
         </div>
 
-        {loading && (
-          <p className="mt-4 text-sm text-zinc-500">Loading…</p>
-        )}
+        {loading && <p className="mt-4 text-sm text-zinc-500">Loading…</p>}
 
         {fetchError && (
           <p className="mt-4 text-sm text-red-600" role="alert">
@@ -122,17 +165,20 @@ export function AdminMarkSoldModal({
         {data && (
           <div className="mt-4 border-t border-zinc-100 pt-4">
             <AdminSaleAttributionForm
-              key={listingId}
-              fixedListingId={listingId}
-              fixedListingLabel={data.listingLabel}
-              listingOptions={[]}
+              key={`${listingId ?? ''}-${leadId ?? ''}-${open}`}
+              fixedListingId={data.listingFixed?.id ?? null}
+              fixedListingLabel={data.listingFixed?.label}
+              listingOptions={data.listingOptions}
               leadsPool={data.leadsPool}
-              existing={null}
+              existing={data.existing}
+              fixedLead={data.leadFixed}
+              initialListingSelection={data.suggestedListingId}
               variant="embedded"
               hideClearAttribution
               submitLabel="Save attribution & mark sold"
-              afterAttributionSaved={async () => {
-                const r = await markListingAsSold(listingId);
+              onEffectiveListingChange={(id) => setMarkSoldTargetId(id)}
+              afterAttributionSaved={async (soldListingId) => {
+                const r = await markListingAsSold(soldListingId);
                 if ('error' in r) throw new Error(r.error);
                 onClose();
               }}
@@ -149,7 +195,7 @@ export function AdminMarkSoldModal({
         <div className="mt-6 flex flex-col gap-2 border-t border-zinc-100 pt-4 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
-            disabled={pending || !data}
+            disabled={pending || !data || !canSkipAttribution}
             onClick={handleMarkSoldWithoutAttribution}
             className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-950 hover:bg-amber-100 disabled:opacity-50"
           >

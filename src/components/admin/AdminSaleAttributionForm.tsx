@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { upsertSaleAttribution, clearSaleAttribution } from '@/lib/actions/attribution';
 import type { LeadAttributionPick, SalesAttribution } from '@/lib/supabase/types';
-import type { ListingAttributionOption } from '@/lib/actions/attribution';
+import type { ListingAttributionOption, RecordSaleModalFixedLead } from '@/lib/actions/attribution';
 import { LeadSourceBadge } from '@/components/admin/LeadSourceBadge';
 
 function isoToDatetimeLocalValue(iso: string): string {
@@ -33,14 +33,22 @@ export interface AdminSaleAttributionFormProps {
   existing: SalesAttribution | null;
   initialLeadId?: string | null;
   initialLead?: LeadAttributionPick | null;
-  /** `embedded`: no outer card/title (e.g. inside “Mark as sold” modal). */
+  /** When opening from a lead row: lock buyer to this lead (still allow Manual). */
+  fixedLead?: RecordSaleModalFixedLead | null;
+  /** Default listing when the dropdown is shown (e.g. lead’s linked listing). */
+  initialListingSelection?: string | null;
+  /** `embedded`: no outer card/title (e.g. inside “Record sale” modal). */
   variant?: 'page' | 'embedded';
-  /** After attribution is saved; e.g. mark listing sold + close modal. */
-  afterAttributionSaved?: () => void | Promise<void>;
+  /** After attribution is saved; receives the listing the sale was recorded against. */
+  afterAttributionSaved?: (listingId: string) => void | Promise<void>;
+  /** For modal footers that need the current listing (e.g. skip attribution). */
+  onEffectiveListingChange?: (listingId: string) => void;
   /** Override primary submit label. */
   submitLabel?: string;
   /** Hide “Clear attribution” (e.g. in mark-sold modal). */
   hideClearAttribution?: boolean;
+  /** After a successful save (e.g. collapse attribution tab panel). Not used with `afterAttributionSaved`. */
+  onSaveSuccess?: () => void;
 }
 
 export function AdminSaleAttributionForm({
@@ -51,16 +59,21 @@ export function AdminSaleAttributionForm({
   existing,
   initialLeadId,
   initialLead,
+  fixedLead,
+  initialListingSelection,
   variant = 'page',
   afterAttributionSaved,
+  onEffectiveListingChange,
   submitLabel,
   hideClearAttribution = false,
+  onSaveSuccess,
 }: AdminSaleAttributionFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const defaultListingId =
     fixedListingId ??
+    initialListingSelection ??
     initialLead?.listing_id ??
     (listingOptions[0]?.id ?? '');
 
@@ -72,11 +85,19 @@ export function AdminSaleAttributionForm({
   ).length;
 
   const initialMode: 'lead' | 'manual' =
-    existing?.lead_id ? 'lead' : existing?.buyer_name ? 'manual' : leadsForListingCountEarly > 0 ? 'lead' : 'manual';
+    existing?.lead_id
+      ? 'lead'
+      : existing?.buyer_name
+        ? 'manual'
+        : fixedLead
+          ? 'lead'
+          : leadsForListingCountEarly > 0
+            ? 'lead'
+            : 'manual';
 
   const [mode, setMode] = useState<'lead' | 'manual'>(initialMode);
   const [leadId, setLeadId] = useState(
-    () => existing?.lead_id ?? initialLeadId ?? ''
+    () => existing?.lead_id ?? (fixedLead ? fixedLead.id : initialLeadId ?? '')
   );
   const [buyerName, setBuyerName] = useState(() => existing?.buyer_name ?? '');
   const [buyerPhone, setBuyerPhone] = useState(() => existing?.buyer_phone ?? '');
@@ -92,6 +113,11 @@ export function AdminSaleAttributionForm({
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const effectiveListingId = fixedListingId ?? selectedListingId;
+
+  useEffect(() => {
+    const id = effectiveListingId?.trim();
+    if (id) onEffectiveListingChange?.(id);
+  }, [effectiveListingId, onEffectiveListingChange]);
 
   const { forListing, otherLeads } = useMemo(() => {
     const forL = leadsPool.filter((l) => l.listing_id === effectiveListingId);
@@ -109,25 +135,28 @@ export function AdminSaleAttributionForm({
     }
 
     startTransition(async () => {
-      const result = await upsertSaleAttribution({
-        listingId,
-        mode,
-        leadId: mode === 'lead' ? leadId : '',
-        buyerName: mode === 'manual' ? buyerName : undefined,
-        buyerPhone: mode === 'manual' ? buyerPhone : undefined,
-        buyerEmail: mode === 'manual' ? buyerEmail : undefined,
-        buyerCountry: mode === 'manual' ? buyerCountry : undefined,
-        soldPriceGbp,
-        soldAt,
-        notes,
-      });
+      const result = await upsertSaleAttribution(
+        {
+          listingId,
+          mode,
+          leadId: mode === 'lead' ? leadId : '',
+          buyerName: mode === 'manual' ? buyerName : undefined,
+          buyerPhone: mode === 'manual' ? buyerPhone : undefined,
+          buyerEmail: mode === 'manual' ? buyerEmail : undefined,
+          buyerCountry: mode === 'manual' ? buyerCountry : undefined,
+          soldPriceGbp,
+          soldAt,
+          notes,
+        },
+        { closeListing: !afterAttributionSaved }
+      );
       if ('error' in result) {
         setMessage({ type: 'err', text: result.error });
         return;
       }
       if (afterAttributionSaved) {
         try {
-          await afterAttributionSaved();
+          await afterAttributionSaved(listingId);
         } catch (err) {
           setMessage({
             type: 'err',
@@ -136,6 +165,11 @@ export function AdminSaleAttributionForm({
           router.refresh();
           return;
         }
+        router.refresh();
+        return;
+      }
+      if (onSaveSuccess) {
+        onSaveSuccess();
         router.refresh();
         return;
       }
@@ -227,7 +261,10 @@ export function AdminSaleAttributionForm({
                 type="radio"
                 name="attr-mode"
                 checked={mode === 'lead'}
-                onChange={() => setMode('lead')}
+                onChange={() => {
+                  setMode('lead');
+                  if (fixedLead) setLeadId(fixedLead.id);
+                }}
                 className="text-zinc-900"
               />
               Existing lead
@@ -245,7 +282,17 @@ export function AdminSaleAttributionForm({
           </div>
         </fieldset>
 
-        {mode === 'lead' && (
+        {mode === 'lead' && fixedLead && (
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Lead</p>
+            <p className="mt-1 text-sm font-medium text-zinc-900">{fixedLead.label}</p>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-600">
+              Source: <LeadSourceBadge source={fixedLead.source} />
+            </p>
+          </div>
+        )}
+
+        {mode === 'lead' && !fixedLead && (
           <div>
             <label htmlFor="attr-lead" className="block text-xs font-medium text-zinc-600">
               Select lead

@@ -12,7 +12,10 @@ export function MoreListingsCarousel({ listings, coverUrls }: MoreListingsCarous
   if (listings.length === 0) return null;
 
   return (
-    <section className="border-t border-border-subtle bg-gradient-to-b from-section-soft/30 to-background px-4 py-10 sm:px-6 sm:py-12">
+    <section
+      className="border-t border-border-subtle bg-gradient-to-b from-section-soft/30 to-background px-4 py-10 sm:px-6 sm:py-12"
+      aria-label="Similar listings"
+    >
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-0.5 border-b border-border-subtle/60 pb-4 sm:flex-row sm:items-end sm:justify-between sm:pb-5">
           <div>
@@ -24,13 +27,19 @@ export function MoreListingsCarousel({ listings, coverUrls }: MoreListingsCarous
           className="mt-6 flex gap-4 overflow-x-auto pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:thin] sm:gap-5 sm:pb-4 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border-strong"
           style={{ scrollSnapType: 'x mandatory' }}
         >
-          {listings.map((listing) => (
+          {listings.map((listing, i) => (
             <div
               key={listing.id}
               className="w-[min(100%,300px)] shrink-0 sm:w-[308px]"
               style={{ scrollSnapAlign: 'start' }}
             >
-              <ListingCard listing={listing} coverImageUrl={coverUrls[listing.id]} showCategoryBadge />
+              <ListingCard
+                listing={listing}
+                coverImageUrl={coverUrls[listing.id]}
+                showCategoryBadge
+                imageSizes="(max-width: 768px) 90vw, 308px"
+                imagePriority={i === 0}
+              />
             </div>
           ))}
         </div>

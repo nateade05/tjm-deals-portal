@@ -186,8 +186,8 @@ export async function setListingStatus(
   const supabase = await supabaseServer();
   const { data: row } = await supabase.from('listings').select('status').eq('id', id).maybeSingle();
   const current = row?.status as ListingStatus | undefined;
-  if (current === 'sold' || current === 'archived') {
-    return { error: 'Cannot change status from sold or archived here.' };
+  if (current === 'sold' || current === 'archived' || current === 'closed') {
+    return { error: 'Cannot change status from sold, closed, or archived here.' };
   }
   const { error } = await supabase.from('listings').update({ status }).eq('id', id);
   if (error) return { error: error.message };
@@ -224,6 +224,41 @@ export async function markListingAsSold(listingId: string): Promise<{ ok: true }
   return { ok: true };
 }
 
+/**
+ * Sold → draft: undo a completed sale from admin. Removes `sales_attribution` for this listing.
+ */
+export async function markListingAsUnsold(listingId: string): Promise<{ ok: true } | { error: string }> {
+  const supabase = await supabaseServer();
+  const { data: row, error: fetchErr } = await supabase
+    .from('listings')
+    .select('status')
+    .eq('id', listingId)
+    .maybeSingle();
+  if (fetchErr || !row) return { error: 'Listing not found.' };
+  const st = row.status as ListingStatus;
+  if (st !== 'sold') {
+    return { error: 'Only sold listings can be marked as unsold.' };
+  }
+
+  const { error: delAttrErr } = await supabase.from('sales_attribution').delete().eq('listing_id', listingId);
+  if (delAttrErr) {
+    console.error('[markListingAsUnsold] delete attribution', delAttrErr.message);
+    return { error: delAttrErr.message || 'Could not clear sale attribution.' };
+  }
+
+  const { error } = await supabase.from('listings').update({ status: 'draft' }).eq('id', listingId);
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/listings');
+  revalidatePath(`/admin/listings/${listingId}/edit`);
+  revalidatePath('/admin/attribution');
+  revalidatePath('/admin/leads');
+  revalidatePath('/');
+  revalidatePath('/listings');
+  revalidatePath(`/listings/${listingId}`);
+  return { ok: true };
+}
+
 /** Only draft or sold (not live — unpublish to draft first). */
 export async function archiveListing(listingId: string): Promise<{ ok: true } | { error: string }> {
   const supabase = await supabaseServer();
@@ -234,10 +269,10 @@ export async function archiveListing(listingId: string): Promise<{ ok: true } | 
     .maybeSingle();
   if (fetchErr || !row) return { error: 'Listing not found.' };
   const st = row.status as ListingStatus;
-  if (st !== 'draft' && st !== 'sold') {
+  if (st !== 'draft' && st !== 'sold' && st !== 'closed') {
     return {
       error:
-        'Only draft or sold listings can be archived. Set a live listing to draft first (status column).',
+        'Only draft, sold, or closed listings can be archived. Set a live listing to draft first (status column).',
     };
   }
   const { error } = await supabase.from('listings').update({ status: 'archived' }).eq('id', listingId);

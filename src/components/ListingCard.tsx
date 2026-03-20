@@ -8,6 +8,10 @@ interface ListingCardProps {
   listing: Listing;
   coverImageUrl?: string | null;
   showCategoryBadge?: boolean;
+  /** Passed to cover image for responsive loading. */
+  imageSizes?: string;
+  /** LCP: set true for first card above the fold only. */
+  imagePriority?: boolean;
 }
 
 function displayTitle(listing: Listing): string {
@@ -32,7 +36,13 @@ function ListingTypeBadge({ category }: { category: Listing['category'] }) {
   );
 }
 
-export function ListingCard({ listing, coverImageUrl, showCategoryBadge = true }: ListingCardProps) {
+export function ListingCard({
+  listing,
+  coverImageUrl,
+  showCategoryBadge = true,
+  imageSizes,
+  imagePriority = false,
+}: ListingCardProps) {
   const href = `/listings/${listing.id}`;
   const alt = displayTitle(listing);
 
@@ -40,14 +50,16 @@ export function ListingCard({ listing, coverImageUrl, showCategoryBadge = true }
     <Link href={href} className="group block">
       <Card
         padded={false}
-        className="overflow-hidden border-border-subtle/70 shadow-sm ring-1 ring-black/[0.03] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-border-strong/80 hover:shadow-lg"
+        className="overflow-hidden border-border-subtle/70 shadow-sm ring-1 ring-black/[0.03] transition-all duration-300 ease-out motion-reduce:transition-none hover:-translate-y-1 motion-reduce:hover:translate-y-0 hover:border-border-strong/80 hover:shadow-lg"
       >
         {/* Taller, more editorial image ratio (5:4) */}
         <div className="relative aspect-[5/4] overflow-hidden bg-gradient-to-b from-surface-alt via-section-soft/20 to-surface-alt">
           <ListingCardMedia
             src={coverImageUrl}
             alt={alt}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            sizes={imageSizes}
+            priority={Boolean(imagePriority)}
+            className="transition-transform duration-700 ease-out motion-reduce:transition-none group-hover:scale-[1.04] motion-reduce:group-hover:scale-100"
           />
           {showCategoryBadge && (
             <div className="absolute left-2.5 top-2.5 z-10 sm:left-3 sm:top-3">

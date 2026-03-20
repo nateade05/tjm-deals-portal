@@ -9,15 +9,27 @@ interface MediaGalleryProps {
 }
 
 /** Single fixed-aspect stage; images always fill via cover + center (any source aspect). */
-function MainImageStage({ src, onError }: { src: string; onError: () => void }) {
+function MainImageStage({
+  src,
+  onError,
+  fetchPriority,
+}: {
+  src: string;
+  onError: () => void;
+  fetchPriority?: 'high' | 'low' | 'auto';
+}) {
   return (
     <div className="relative aspect-[16/10] w-full min-h-[220px] overflow-hidden rounded-2xl border border-border-subtle/70 bg-gradient-to-br from-surface-alt/90 to-section-soft/50 shadow-sm ring-1 ring-black/[0.04]">
+      {/* Signed URLs + layout from fixed aspect container; native img avoids optimizer coupling */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt=""
         onError={onError}
-        className="absolute inset-0 h-full w-full object-cover object-center scale-[1.02]"
+        decoding="async"
+        fetchPriority={fetchPriority}
+        sizes="(max-width: 1024px) 100vw, 65vw"
+        className="absolute inset-0 h-full w-full object-cover object-center motion-reduce:scale-100 scale-[1.02]"
       />
     </div>
   );
@@ -42,27 +54,25 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
     [images, failedSrc]
   );
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [images]);
-
-  useEffect(() => {
-    if (goodImages.length === 0) return;
-    if (selectedIndex >= goodImages.length) {
-      setSelectedIndex(Math.max(0, goodImages.length - 1));
-    }
-  }, [goodImages.length, selectedIndex]);
-
   const count = goodImages.length;
-  const currentImage = goodImages[selectedIndex] ?? goodImages[0];
+  const safeIndex = count === 0 ? 0 : Math.min(selectedIndex, count - 1);
+  const currentImage = goodImages[safeIndex] ?? goodImages[0];
   const showArrows = count > 1;
 
   const goPrev = useCallback(() => {
-    setSelectedIndex((i) => (i <= 0 ? count - 1 : i - 1));
+    if (count <= 0) return;
+    setSelectedIndex((i) => {
+      const cur = Math.min(i, count - 1);
+      return cur <= 0 ? count - 1 : cur - 1;
+    });
   }, [count]);
 
   const goNext = useCallback(() => {
-    setSelectedIndex((i) => (i >= count - 1 ? 0 : i + 1));
+    if (count <= 0) return;
+    setSelectedIndex((i) => {
+      const cur = Math.min(i, count - 1);
+      return cur >= count - 1 ? 0 : cur + 1;
+    });
   }, [count]);
 
   useEffect(() => {
@@ -77,9 +87,9 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
 
   const openViewer = useCallback(() => {
     if (goodImages.length === 0) return;
-    setViewerInitialIndex(selectedIndex);
+    setViewerInitialIndex(safeIndex);
     setViewerOpen(true);
-  }, [goodImages.length, selectedIndex]);
+  }, [goodImages.length, safeIndex]);
 
   return (
     <div className="space-y-4">
@@ -93,7 +103,11 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
               aria-label="Open full-screen photo viewer"
               className="group relative block w-full cursor-zoom-in rounded-2xl text-left transition-[box-shadow,ring] duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-gold motion-reduce:transition-none"
             >
-              <MainImageStage src={currentImage} onError={() => markFailed(currentImage)} />
+              <MainImageStage
+                src={currentImage}
+                onError={() => markFailed(currentImage)}
+                fetchPriority={safeIndex === 0 ? 'high' : 'auto'}
+              />
               <span
                 className="pointer-events-none absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/35 text-white opacity-0 shadow-sm backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100 sm:right-4 sm:top-4"
                 aria-hidden
@@ -156,7 +170,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
               type="button"
               onClick={() => setSelectedIndex(i)}
               className={`relative h-[4.25rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 sm:h-[4.5rem] sm:w-24 ${
-                selectedIndex === i
+                safeIndex === i
                   ? 'border-gold shadow-sm ring-1 ring-gold/25'
                   : 'border-transparent opacity-85 ring-1 ring-transparent hover:border-border-strong hover:opacity-100'
               }`}
@@ -177,7 +191,13 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
           <p className="border-b border-border-subtle bg-surface-alt px-4 py-2.5 text-sm font-medium text-secondary">
             Walkaround video
           </p>
-          <video controls className="w-full" src={videoUrl} preload="metadata">
+          <video
+            controls
+            className="w-full max-h-[min(70vh,520px)] bg-black"
+            src={videoUrl}
+            preload="metadata"
+            poster={currentImage}
+          >
             Your browser does not support the video tag.
           </video>
         </div>

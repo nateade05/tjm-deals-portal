@@ -7,6 +7,7 @@ import { ListingForm } from '@/components/ListingForm';
 import { MediaUploader } from '@/components/MediaUploader';
 import { AdminListingMediaList } from '@/components/AdminListingMediaList';
 import { AdminPublicLink } from '@/components/AdminPublicLink';
+import { AdminMarkUnsoldModal } from '@/components/admin/AdminMarkUnsoldModal';
 import { AdminSaleAttributionForm } from '@/components/admin/AdminSaleAttributionForm';
 import { updateListingFromForm, setListingStatus } from '@/lib/actions/listings';
 import { noopCreateAction } from '@/lib/actions/listings';
@@ -36,6 +37,7 @@ export function AdminListingEditClient({
   const router = useRouter();
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [saveToastOpen, setSaveToastOpen] = useState(false);
+  const [unsoldModalOpen, setUnsoldModalOpen] = useState(false);
 
   const showSavedToast = useCallback(() => {
     setSaveToastOpen(true);
@@ -125,8 +127,8 @@ export function AdminListingEditClient({
         </section>
       )}
 
-      {/* 4) Main CTAs — Publish only for drafts; live listings update via Save changes + automatic revalidation */}
-      {(isEditingDetails || initialListing.status !== 'live') && (
+      {/* 4) Main CTAs — Save when editing; Publish only for drafts (not sold/closed/archived) */}
+      {(isEditingDetails || initialListing.status === 'draft') && (
         <div className="flex flex-wrap items-center gap-3">
           {isEditingDetails && (
             <button
@@ -137,7 +139,7 @@ export function AdminListingEditClient({
               Save changes
             </button>
           )}
-          {initialListing.status !== 'live' && (
+          {initialListing.status === 'draft' && (
             <button
               type="button"
               onClick={handlePublish}
@@ -150,6 +152,21 @@ export function AdminListingEditClient({
       )}
 
       {/* Sale attribution */}
+      {initialListing.status === 'sold' && (
+        <section className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
+          <h2 className="text-sm font-semibold text-amber-950">Sold listing</h2>
+          <p className="mt-1 text-sm text-amber-900/90">
+            If this sale should be reversed, mark the listing as unsold (returns to draft and clears sale attribution).
+          </p>
+          <button
+            type="button"
+            onClick={() => setUnsoldModalOpen(true)}
+            className="mt-3 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-950 hover:bg-amber-50"
+          >
+            Mark as unsold…
+          </button>
+        </section>
+      )}
       <AdminSaleAttributionForm
         fixedListingId={initialListing.id}
         fixedListingLabel={listingLabel}
@@ -163,10 +180,21 @@ export function AdminListingEditClient({
         <h2 className="mb-3 text-sm font-medium text-zinc-700">Public link</h2>
         {initialListing.status === 'live' ? (
           <AdminPublicLink listingId={initialListing.id} />
-        ) : (
+        ) : initialListing.status === 'draft' ? (
           <p className="text-sm text-zinc-500">Publish to make this visible on the public site.</p>
+        ) : (
+          <p className="text-sm text-zinc-500">
+            Not on the public site ({initialListing.status === 'closed' ? 'closed after sale attribution' : 'sold or archived'}).
+          </p>
         )}
       </section>
+
+      <AdminMarkUnsoldModal
+        open={unsoldModalOpen}
+        onClose={() => setUnsoldModalOpen(false)}
+        listingId={initialListing.id}
+        listingTitle={listingLabel}
+      />
     </div>
   );
 }

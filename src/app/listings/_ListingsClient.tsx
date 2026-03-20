@@ -21,7 +21,7 @@ interface ListingsClientProps {
 
 /** Curated marketplace control strip — tabs + refinements in one system (not stacked forms). */
 const selectChrome =
-  'rounded-lg border-0 bg-transparent py-1.5 pl-0 pr-7 text-sm font-medium text-primary shadow-none ring-0 focus:ring-0 focus:outline-none cursor-pointer';
+  'min-h-[44px] rounded-lg border-0 bg-transparent py-2 pl-0 pr-7 text-sm font-medium text-primary shadow-none ring-0 focus:ring-0 focus:outline-none cursor-pointer sm:min-h-0 sm:py-1.5';
 
 export function ListingsClient({ initialListings, coverUrls }: ListingsClientProps) {
   const router = useRouter();
@@ -209,15 +209,20 @@ export function ListingsClient({ initialListings, coverUrls }: ListingsClientPro
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState onOpenLead={() => setLeadOpen(true)} />
+        <EmptyState
+          variant={hasClientFilters || hasUrlPricing ? 'filtered' : 'empty'}
+          onOpenLead={() => setLeadOpen(true)}
+        />
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 sm:gap-7 lg:grid-cols-3 lg:gap-8">
-          {filtered.map((listing) => (
+          {filtered.map((listing, i) => (
             <ListingCard
               key={listing.id}
               listing={listing}
               coverImageUrl={coverUrls[listing.id]}
               showCategoryBadge
+              imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              imagePriority={i === 0}
             />
           ))}
         </div>

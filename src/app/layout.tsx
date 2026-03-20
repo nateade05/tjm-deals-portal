@@ -25,8 +25,9 @@ export const metadata: Metadata = {
     template: `%s | ${BRAND_SHORT}`,
   },
   description: TAGLINE,
-   icons: {
-    icon: "/tjm-logo.png",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
   },
   openGraph: {
     title: `${BRAND_SHORT} | Singapore car deals landed in the UK`,

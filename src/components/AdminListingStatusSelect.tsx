@@ -24,6 +24,8 @@ function statusLabel(s: ListingStatus): string {
       return 'Live';
     case 'sold':
       return 'Sold';
+    case 'closed':
+      return 'Closed';
     case 'archived':
       return 'Archived';
     default:
@@ -51,7 +53,7 @@ export function AdminListingStatusSelect({ listingId, currentStatus }: AdminList
     router.refresh();
   }
 
-  if (currentStatus === 'sold' || currentStatus === 'archived') {
+  if (currentStatus === 'sold' || currentStatus === 'archived' || currentStatus === 'closed') {
     return (
       <span className="inline-flex rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-sm font-medium text-zinc-700">
         {statusLabel(currentStatus)}

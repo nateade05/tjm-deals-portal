@@ -35,18 +35,22 @@ function CategoryBadge({ category }: { category: Listing['category'] }) {
 function ListingCard({
   listing,
   coverUrl,
+  imagePriority,
 }: {
   listing: Listing;
   coverUrl: string | undefined;
+  imagePriority?: boolean;
 }) {
   return (
     <Link href={`/listings/${listing.id}`} className="group block h-full">
-      <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-sm transition-all duration-200 hover:shadow-md">
+      <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-sm transition-all duration-200 motion-reduce:transition-none hover:shadow-md">
         <div className="relative aspect-[4/3] overflow-hidden bg-surface-alt">
           <ListingCardMedia
             src={coverUrl}
             alt={displayTitle(listing)}
-            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={imagePriority}
+            className="transition-transform duration-200 motion-reduce:transition-none group-hover:scale-[1.02] motion-reduce:group-hover:scale-100"
           />
           <div className="absolute right-2 top-2">
             <CategoryBadge category={listing.category} />
@@ -134,11 +138,12 @@ export function HomeFeaturedListings({ listings, coverUrls }: HomeFeaturedListin
         </div>
 
         <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-          {listings.map((listing) => (
+          {listings.map((listing, i) => (
             <li key={listing.id}>
               <ListingCard
                 listing={listing}
                 coverUrl={coverUrls[listing.id]}
+                imagePriority={i === 0}
               />
             </li>
           ))}

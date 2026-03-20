@@ -39,15 +39,19 @@ export function ListingImageViewerModal({
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const [mounted, setMounted] = useState(false);
   const [index, setIndex] = useState(0);
   const [zoomed, setZoomed] = useState(false);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
+  );
 
   const panRef = useRef(pan);
-  panRef.current = pan;
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
 
   const interactionRef = useRef({
     down: false,
@@ -60,21 +64,30 @@ export function ListingImageViewerModal({
 
   const swipeRef = useRef({ y0: 0, tracking: false });
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduceMotion(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     const safe = clamp(initialIndex, 0, Math.max(0, images.length - 1));
+    /* eslint-disable react-hooks/set-state-in-effect -- reset viewer when opening / image set changes */
     setIndex(safe);
     setZoomed(false);
     setPan({ x: 0, y: 0 });
     setImgFailed(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, initialIndex, images.length]);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- reset zoom when changing slide */
     setZoomed(false);
     setPan({ x: 0, y: 0 });
     setImgFailed(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [index]);
 
   useEffect(() => {
@@ -263,7 +276,7 @@ export function ListingImageViewerModal({
     swipeRef.current.tracking = false;
   };
 
-  if (!mounted || !open || images.length === 0) return null;
+  if (typeof document === 'undefined' || !open || images.length === 0) return null;
 
   const showNav = images.length > 1;
 
@@ -381,9 +394,10 @@ export function ListingImageViewerModal({
                 className="max-h-full max-w-full object-contain select-none"
                 style={{
                   transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomed ? ZOOM_LEVEL : 1})`,
-                  transition: dragging
-                    ? 'none'
-                    : 'transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition:
+                    dragging || reduceMotion
+                      ? 'none'
+                      : 'transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
                 onPointerDown={onImagePointerDown}
                 onPointerMove={onImagePointerMove}
@@ -417,7 +431,14 @@ export function ListingImageViewerModal({
                 aria-label={`Show image ${i + 1}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={src}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.visibility = 'hidden';
+                  }}
+                />
               </button>
             ))}
           </div>

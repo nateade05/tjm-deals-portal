@@ -17,8 +17,8 @@ export function HomeHero() {
           fill
           priority
           sizes="100vw"
-          unoptimized
-          className="object-cover object-center scale-[1.18]"
+          quality={82}
+          className="object-cover object-center motion-reduce:scale-100 scale-[1.18]"
           style={{ objectPosition: '50% 58%' }}
         />
         {/* Gentle readability wash that keeps the scene intact */}
