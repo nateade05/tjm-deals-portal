@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { supabaseServer } from '@/lib/supabase/server';
+import { isPricingCategory } from '@/lib/pricingCategory';
 import type { Listing, ListingMedia, ListingStatus } from '@/lib/supabase/types';
 
 function rowToListing(row: {
@@ -16,6 +17,7 @@ function rowToListing(row: {
   transmission: string | null;
   fuel: string | null;
   category: string;
+  pricing_category?: string | null;
   status: string;
   price_landed_gbp: number | null;
   estimated_resale_gbp: number | null;
@@ -35,6 +37,7 @@ function rowToListing(row: {
     transmission: row.transmission,
     fuel: row.fuel,
     category: row.category as Listing['category'],
+    pricing_category: (row.pricing_category as Listing['pricing_category']) ?? null,
     status: row.status as Listing['status'],
     price_landed_gbp: row.price_landed_gbp,
     estimated_resale_gbp: row.estimated_resale_gbp,
@@ -64,6 +67,8 @@ export async function createListing(formData: FormData): Promise<{ id: string } 
   const mileage_mi = mileageMi !== null && mileageMi !== '' && !Number.isNaN(Number(mileageMi))
     ? Number(mileageMi)
     : null;
+  const pricingRaw = (formData.get('pricing_category') as string | null)?.trim() || '';
+  const pricing_category = isPricingCategory(pricingRaw) ? pricingRaw : null;
   const priceVal = formData.get('price_landed_gbp');
   const price_landed_gbp = priceVal !== null && priceVal !== '' && !Number.isNaN(Number(priceVal)) ? Number(priceVal) : null;
   const resaleVal = formData.get('estimated_resale_gbp');
@@ -74,6 +79,7 @@ export async function createListing(formData: FormData): Promise<{ id: string } 
     .insert({
       title,
       category,
+      pricing_category,
       status: 'draft',
       make,
       model,
@@ -91,6 +97,8 @@ export async function createListing(formData: FormData): Promise<{ id: string } 
 
   if (error) return { error: error.message };
   revalidatePath('/admin/listings');
+  revalidatePath('/');
+  revalidatePath('/listings');
   return { id: data.id };
 }
 
@@ -127,6 +135,8 @@ export async function updateListing(
     : null;
   const yearVal = formData.get('year');
   const year = yearVal !== null && yearVal !== '' && !Number.isNaN(Number(yearVal)) ? Number(yearVal) : null;
+  const pricingRawEdit = (formData.get('pricing_category') as string | null)?.trim() || '';
+  const pricing_category = isPricingCategory(pricingRawEdit) ? pricingRawEdit : null;
   const priceVal = formData.get('price_landed_gbp');
   const price_landed_gbp = priceVal !== null && priceVal !== '' && !Number.isNaN(Number(priceVal)) ? Number(priceVal) : null;
   const resaleVal = formData.get('estimated_resale_gbp');
@@ -137,6 +147,7 @@ export async function updateListing(
     .update({
       title: title.trim(),
       category,
+      pricing_category,
       make: (formData.get('make') as string) || null,
       model: (formData.get('model') as string) || null,
       year,
@@ -153,6 +164,9 @@ export async function updateListing(
   if (error) return { error: error.message };
   revalidatePath('/admin/listings');
   revalidatePath(`/admin/listings/${id}/edit`);
+  revalidatePath('/');
+  revalidatePath('/listings');
+  revalidatePath(`/listings/${id}`);
   return { ok: true };
 }
 
@@ -171,6 +185,9 @@ export async function setListingStatus(
   if (error) return { error: error.message };
   revalidatePath('/admin/listings');
   revalidatePath(`/admin/listings/${id}/edit`);
+  revalidatePath('/');
+  revalidatePath('/listings');
+  revalidatePath(`/listings/${id}`);
   return { ok: true };
 }
 

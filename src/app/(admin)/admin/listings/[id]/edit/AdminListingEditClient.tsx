@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ListingSummaryCard } from '@/components/ListingSummaryCard';
 import { ListingForm } from '@/components/ListingForm';
@@ -21,9 +21,22 @@ interface AdminListingEditClientProps {
   mediaWithUrls: (ListingMedia & { signedUrl?: string })[];
 }
 
+const SAVE_TOAST_MS = 4200;
+
 export function AdminListingEditClient({ listing: initialListing, mediaWithUrls }: AdminListingEditClientProps) {
   const router = useRouter();
   const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [saveToastOpen, setSaveToastOpen] = useState(false);
+
+  const showSavedToast = useCallback(() => {
+    setSaveToastOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!saveToastOpen) return;
+    const t = window.setTimeout(() => setSaveToastOpen(false), SAVE_TOAST_MS);
+    return () => window.clearTimeout(t);
+  }, [saveToastOpen]);
 
   async function handlePublish() {
     const result = await setListingStatus(initialListing.id, 'live');
@@ -34,7 +47,21 @@ export function AdminListingEditClient({ listing: initialListing, mediaWithUrls 
   const computedTitle = computeTitle(initialListing);
 
   return (
-    <div className="space-y-8">
+    <div className="relative space-y-8">
+      {saveToastOpen && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="admin-save-toast fixed bottom-6 right-6 z-[200] flex max-w-[min(calc(100vw-2rem),20rem)] items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-900 shadow-lg"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700" aria-hidden>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <span>Changes saved — listing updated.</span>
+        </div>
+      )}
       {/* 1) Listing details: summary or form */}
       {!isEditingDetails ? (
         <ListingSummaryCard listing={initialListing} onEditDetails={() => setIsEditingDetails(true)} />
@@ -58,6 +85,7 @@ export function AdminListingEditClient({ listing: initialListing, mediaWithUrls 
             updateAction={updateListingFromForm}
             showSubmitButton={false}
             formId="admin-listing-edit-form"
+            onSaved={showSavedToast}
           />
         </div>
       )}
@@ -88,25 +116,29 @@ export function AdminListingEditClient({ listing: initialListing, mediaWithUrls 
         </section>
       )}
 
-      {/* 4) Main CTAs */}
-      <div className="flex flex-wrap items-center gap-3">
-        {isEditingDetails && (
-          <button
-            type="submit"
-            form="admin-listing-edit-form"
-            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-          >
-            Save changes
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={handlePublish}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-        >
-          {initialListing.status === 'live' ? 'Update published listing' : 'Publish'}
-        </button>
-      </div>
+      {/* 4) Main CTAs — Publish only for drafts; live listings update via Save changes + automatic revalidation */}
+      {(isEditingDetails || initialListing.status !== 'live') && (
+        <div className="flex flex-wrap items-center gap-3">
+          {isEditingDetails && (
+            <button
+              type="submit"
+              form="admin-listing-edit-form"
+              className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Save changes
+            </button>
+          )}
+          {initialListing.status !== 'live' && (
+            <button
+              type="button"
+              onClick={handlePublish}
+              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+            >
+              Publish
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Public link */}
       <section>

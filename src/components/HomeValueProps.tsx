@@ -7,31 +7,31 @@ const FEATURES = [
     id: 'high-spec',
     title: 'High specification',
     copy: 'Singapore buyers frequently select higher trims and factory options, resulting in vehicles with stronger specifications than many equivalent UK models.',
-    imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=85',
+    imageUrl: '/high_spec_why_sg.jpg',
   },
   {
     id: 'well-maintained',
     title: 'Well maintained',
     copy: 'Strict inspection standards and a strong servicing culture keep Singapore vehicles in excellent mechanical condition.',
-    imageUrl: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=85',
+    imageUrl: '/maintained_why_sg.jpg',
   },
   {
     id: 'low-corrosion',
     title: 'Low corrosion',
     copy: "Singapore's climate and absence of salted winter roads significantly reduce corrosion risk compared with many UK vehicles.",
-    imageUrl: 'https://images.unsplash.com/photo-1549317661-b73232c15f0f?w=800&q=85',
+    imageUrl: '/low_corrosion_why_sg.jpg',
   },
   {
     id: 'lower-mileage',
     title: 'Lower mileage',
     copy: 'Short urban journeys and efficient road networks often result in lower annual mileage than comparable UK vehicles.',
-    imageUrl: 'https://images.unsplash.com/photo-1619405399517-d7fce0f13302?w=800&q=85',
+    imageUrl: '/low_mileage_why_sg.jpg',
   },
   {
     id: 'constant-supply',
     title: 'Constant supply',
     copy: 'The COE system means vehicles regularly exit the market, creating a steady pipeline of high-quality export opportunities.',
-    imageUrl: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&q=85',
+    imageUrl: '/constant_supply_why_sg.jpg',
   },
 ] as const;
 

@@ -1,5 +1,7 @@
 export type ListingCategory = 'in_stock' | 'opportunity';
 
+export type PricingCategory = 'premium_economy' | 'economy' | 'premium_suvs' | 'luxury';
+
 export type ListingStatus = 'draft' | 'live' | 'sold' | 'archived';
 
 export type ListingMediaType = 'image' | 'video';
@@ -17,6 +19,8 @@ export interface Listing {
   transmission: string | null;
   fuel: string | null;
   category: ListingCategory;
+  /** Optional segment for filters / display; null if not set */
+  pricing_category: PricingCategory | null;
   status: ListingStatus;
   price_landed_gbp: number | null;
   estimated_resale_gbp: number | null;

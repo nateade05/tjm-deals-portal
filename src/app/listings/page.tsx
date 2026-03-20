@@ -1,98 +1,84 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { TopNav } from '@/components/TopNav';
-import { CategoryTabs } from '@/components/CategoryTabs';
+import { SiteFooter } from '@/components/SiteFooter';
 import { ListingsClient } from './_ListingsClient';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
 import { supabaseServerPublic } from '@/lib/supabase/server';
-import type { Listing, ListingCategory } from '@/lib/supabase/types';
+import type { ListingCategory } from '@/lib/supabase/types';
+import { buildCoverUrlMapForListingIds } from '@/lib/listingImages';
+import { listingFromDbRow } from '@/lib/listingRow';
+import { pricingCategoryFromQuery, PRICING_CATEGORY_LABELS } from '@/lib/pricingCategory';
 
 export const revalidate = 120;
 
-type Props = { searchParams: Promise<{ category?: string }> };
+type Search = { category?: string; pricingCategory?: string };
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { category } = await searchParams;
-  const title = category === 'opportunity'
-    ? 'Opportunities'
-    : category === 'in_stock'
-      ? 'In stock'
-      : 'Listings';
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Search> }): Promise<Metadata> {
+  const { category, pricingCategory } = await searchParams;
+  const pricing = pricingCategoryFromQuery(pricingCategory);
+  const listingType: 'all' | ListingCategory =
+    category === 'in_stock' || category === 'opportunity' ? category : 'all';
+
+  let title = 'Listings';
+  if (listingType === 'in_stock') title = 'In stock';
+  else if (listingType === 'opportunity') title = 'Opportunities';
+  if (pricing) {
+    title = `${PRICING_CATEGORY_LABELS[pricing]} · ${title}`;
+  }
+
   return {
     title: `${title} | ${BRAND_SHORT}`,
     description: TAGLINE,
   };
 }
 
-export default async function ListingsPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
-  const { category: rawCategory } = await searchParams;
-  const category = (rawCategory as ListingCategory) || 'in_stock';
+export default async function ListingsPage({ searchParams }: { searchParams: Promise<Search> }) {
+  const { category: rawCategory, pricingCategory: rawPricing } = await searchParams;
+  const listingType: 'all' | ListingCategory =
+    rawCategory === 'in_stock' || rawCategory === 'opportunity' ? rawCategory : 'all';
+  const pricingFilter = pricingCategoryFromQuery(rawPricing);
 
   const supabase = await supabaseServerPublic();
-  const { data } = await supabase
+  let query = supabase
     .from('listings')
     .select('*')
     .eq('status', 'live')
-    .eq('category', category)
     .order('updated_at', { ascending: false });
 
-  const listings = (data ?? []) as Listing[];
-
-  // Fetch first image per listing for thumbnails
-  let coverUrls: Record<string, string | undefined> = {};
-  if (listings.length > 0) {
-    const listingIds = listings.map((l) => l.id);
-    const { data: media } = await supabase
-      .from('listing_media')
-      .select('listing_id, storage_path, type, sort_order')
-      .in('listing_id', listingIds)
-      .eq('type', 'image')
-      .order('sort_order', { ascending: true });
-
-    const firstByListing: Record<string, string> = {};
-    for (const row of (media ?? []) as { listing_id: string; storage_path: string }[]) {
-      if (!firstByListing[row.listing_id]) {
-        firstByListing[row.listing_id] = row.storage_path;
-      }
-    }
-
-    const entries = Object.entries(firstByListing);
-    const signedPairs = await Promise.all(
-      entries.map(async ([listingId, storagePath]) => {
-        const { data: signed } = await supabase.storage
-          .from('listing-media')
-          .createSignedUrl(storagePath, 60 * 60);
-        return [listingId, signed?.signedUrl] as const;
-      })
-    );
-    coverUrls = Object.fromEntries(signedPairs);
+  if (listingType !== 'all') {
+    query = query.eq('category', listingType);
+  }
+  if (pricingFilter) {
+    query = query.eq('pricing_category', pricingFilter);
   }
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <TopNav />
-      <main className="flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-primary sm:text-3xl">
-                Listings
-              </h1>
-              <p className="mt-1 text-sm text-zinc-600">
-                Live stock and upcoming opportunities from Singapore to the UK.
-              </p>
-            </div>
-            <Suspense fallback={<div className="h-10 w-32 animate-pulse rounded-lg bg-surface-alt" />}>
-              <CategoryTabs />
-            </Suspense>
-          </div>
+  const { data } = await query;
+  const listings = (data ?? []).map((row) => listingFromDbRow(row as Record<string, unknown>));
 
-          <Suspense fallback={<div className="text-sm text-muted">Loading listings…</div>}>
+  const coverUrls =
+    listings.length > 0
+      ? await buildCoverUrlMapForListingIds(supabase, listings.map((l) => l.id))
+      : {};
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <TopNav />
+      <main className="flex-1 px-4 py-5 sm:px-6 sm:py-7">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4">
+          <header className="pb-1">
+            <h1 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">Listings</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-secondary">
+              Curated Singapore imports — choose a stock type, then refine by make, budget, and segment.
+            </p>
+          </header>
+
+          <Suspense fallback={<div className="h-36 animate-pulse rounded-2xl bg-surface-alt/80" />}>
             <ListingsClient initialListings={listings} coverUrls={coverUrls} />
           </Suspense>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }
-

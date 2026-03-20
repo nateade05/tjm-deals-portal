@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { fetchListings } from '@/lib/actions/listings';
 import { AdminListingStatusSelect } from '@/components/AdminListingStatusSelect';
 import { formatGBP, formatMiles } from '@/lib/format';
+import { PRICING_CATEGORY_LABELS } from '@/lib/pricingCategory';
 import type { Listing, ListingStatus } from '@/lib/supabase/types';
 import { AdminListingsFilters } from './AdminListingsFilters';
 
@@ -43,13 +44,14 @@ export default async function AdminListingsPage({ searchParams }: PageProps) {
           <thead className="border-b border-zinc-200 bg-zinc-50">
             <tr>
               <th className="px-4 py-2 font-medium text-zinc-700">Status</th>
-              <th className="px-4 py-2 font-medium text-zinc-700">Category</th>
+              <th className="px-4 py-2 font-medium text-zinc-700">Type</th>
+              <th className="px-4 py-2 font-medium text-zinc-700">Pricing cat.</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Title</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Year</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Make</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Model</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Mileage</th>
-              <th className="px-4 py-2 font-medium text-zinc-700">Landed</th>
+              <th className="px-4 py-2 font-medium text-zinc-700">Your price</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Listed at</th>
               <th className="px-4 py-2 font-medium text-zinc-700">Actions</th>
             </tr>
@@ -57,7 +59,7 @@ export default async function AdminListingsPage({ searchParams }: PageProps) {
           <tbody>
             {listings.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-zinc-500">
+                <td colSpan={11} className="px-4 py-6 text-center text-zinc-500">
                   No listings match the filters.
                 </td>
               </tr>
@@ -69,6 +71,9 @@ export default async function AdminListingsPage({ searchParams }: PageProps) {
                   </td>
                   <td className="px-4 py-2 text-zinc-600">
                     {row.category === 'in_stock' ? 'In stock' : 'Opportunity'}
+                  </td>
+                  <td className="px-4 py-2 text-zinc-600">
+                    {row.pricing_category ? PRICING_CATEGORY_LABELS[row.pricing_category] : '—'}
                   </td>
                   <td className="px-4 py-2 font-medium text-zinc-900">{row.title}</td>
                   <td className="px-4 py-2 text-zinc-600">{row.year ?? '—'}</td>

@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { TopNav } from '@/components/TopNav';
 import { HomeHero } from '@/components/HomeHero';
 import { HomeFeaturedListings } from '@/components/HomeFeaturedListings';
+import { SiteFooter } from '@/components/SiteFooter';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
 import { getFeaturedListings } from '@/lib/featuredListings';
 
@@ -66,13 +67,7 @@ export default async function HomePage() {
         <HomeServiceSummary />
         <HomeFinalCta />
 
-        <footer className="border-t border-border-subtle bg-surface px-4 py-8 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <p className="text-center text-sm text-muted">
-              © {new Date().getFullYear()} Thangamani Jeyam Motors. All rights reserved.
-            </p>
-          </div>
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );

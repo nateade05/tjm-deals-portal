@@ -5,33 +5,29 @@ const CATEGORIES = [
     key: 'premium-economy',
     title: 'Premium Economy',
     subtitle: 'Executive saloons and estates',
-    href: '/listings',
-    imageUrl:
-      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
+    href: '/listings?pricingCategory=premium_economy',
+    imageUrl: '/premium_economy_home.jpg',
   },
   {
     key: 'economy',
     title: 'Economy',
     subtitle: 'Compact hatchbacks and city cars',
-    href: '/listings',
-    imageUrl:
-      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80',
+    href: '/listings?pricingCategory=economy',
+    imageUrl: '/economy_home.jpeg',
   },
   {
     key: 'premium-suvs',
     title: 'Premium SUVs',
     subtitle: 'High-spec SUVs and crossovers',
-    href: '/listings',
-    imageUrl:
-      'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80',
+    href: '/listings?pricingCategory=premium_suvs',
+    imageUrl: '/suvs_home.jpg',
   },
   {
     key: 'luxury',
     title: 'Luxury',
     subtitle: 'Flagship sedans and performance',
-    href: '/listings',
-    imageUrl:
-      'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=800&q=80',
+    href: '/listings?pricingCategory=luxury',
+    imageUrl: '/luxury_home.jpg',
   },
 ] as const;
 

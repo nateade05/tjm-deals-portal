@@ -3,6 +3,7 @@ import type { Listing } from '@/lib/supabase/types';
 import { formatGBP, formatMiles, timeAgo } from '@/lib/format';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import { BUSINESS_WHATSAPP_E164 } from '@/lib/constants';
+import { ListingCardMedia } from '@/components/ListingCardMedia';
 
 interface HomeFeaturedListingsProps {
   listings: Listing[];
@@ -20,10 +21,10 @@ function CategoryBadge({ category }: { category: Listing['category'] }) {
   const isInStock = category === 'in_stock';
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur-sm ${
         isInStock
-          ? 'bg-surface text-secondary ring-1 ring-border-strong'
-          : 'bg-gold-tint/80 text-gold ring-1 ring-gold/50'
+          ? 'bg-surface/95 text-secondary ring-1 ring-border-strong'
+          : 'bg-gold-tint/95 text-gold ring-1 ring-gold/40'
       }`}
     >
       {isInStock ? 'In stock' : 'Opportunity'}
@@ -42,18 +43,11 @@ function ListingCard({
     <Link href={`/listings/${listing.id}`} className="group block h-full">
       <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-sm transition-all duration-200 hover:shadow-md">
         <div className="relative aspect-[4/3] overflow-hidden bg-surface-alt">
-          {coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={coverUrl}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-border-subtle" />
-          )}
+          <ListingCardMedia
+            src={coverUrl}
+            alt={displayTitle(listing)}
+            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+          />
           <div className="absolute right-2 top-2">
             <CategoryBadge category={listing.category} />
           </div>
@@ -119,8 +113,6 @@ export function HomeFeaturedListings({ listings, coverUrls }: HomeFeaturedListin
     );
   }
 
-  const displayListings = listings.slice(0, 6);
-
   return (
     <section className="bg-section-soft px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-6xl">
@@ -130,7 +122,7 @@ export function HomeFeaturedListings({ listings, coverUrls }: HomeFeaturedListin
               Featured Deals
             </h2>
             <p className="mt-1 text-sm text-secondary">
-              Live vehicles currently available for import to the UK.
+              Latest arrivals — in stock and opportunities.
             </p>
           </div>
           <Link
@@ -141,8 +133,8 @@ export function HomeFeaturedListings({ listings, coverUrls }: HomeFeaturedListin
           </Link>
         </div>
 
-        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {displayListings.map((listing) => (
+        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          {listings.map((listing) => (
             <li key={listing.id}>
               <ListingCard
                 listing={listing}

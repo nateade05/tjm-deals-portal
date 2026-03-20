@@ -2,6 +2,7 @@
 
 import type { Listing } from '@/lib/supabase/types';
 import { formatGBP, formatMiles } from '@/lib/format';
+import { PRICING_CATEGORY_LABELS } from '@/lib/pricingCategory';
 
 function computeTitle(listing: Listing): string {
   return [listing.year, listing.make, listing.model].filter(Boolean).map(String).join(' ').trim() || listing.title || '—';
@@ -35,11 +36,19 @@ export function ListingSummaryCard({ listing, onEditDetails }: ListingSummaryCar
       </div>
       <dl className="mt-4 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-zinc-500">Category</dt>
+          <dt className="text-zinc-500">Listing type</dt>
           <dd className="font-medium text-zinc-900">
             {listing.category === 'in_stock' ? 'In stock' : 'Opportunity'}
           </dd>
         </div>
+        {listing.pricing_category && (
+          <div>
+            <dt className="text-zinc-500">Pricing category</dt>
+            <dd className="font-medium text-zinc-900">
+              {PRICING_CATEGORY_LABELS[listing.pricing_category]}
+            </dd>
+          </div>
+        )}
         <div>
           <dt className="text-zinc-500">Year / Make / Model</dt>
           <dd className="font-medium text-zinc-900">
@@ -63,7 +72,7 @@ export function ListingSummaryCard({ listing, onEditDetails }: ListingSummaryCar
           <dd className="font-medium text-zinc-900">{listing.fuel || '—'}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Price landed</dt>
+          <dt className="text-zinc-500">Your price</dt>
           <dd className="font-medium text-zinc-900">{formatGBP(listing.price_landed_gbp)}</dd>
         </div>
         <div>

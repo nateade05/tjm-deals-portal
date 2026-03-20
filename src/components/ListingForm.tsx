@@ -10,6 +10,7 @@ import {
   TRANSMISSION_OPTIONS,
   FUEL_OPTIONS,
 } from '@/lib/carOptions';
+import { PRICING_CATEGORY_LABELS, PRICING_CATEGORY_VALUES } from '@/lib/pricingCategory';
 import {
   formatGBPNumberString,
   formatMilesNumberString,
@@ -56,6 +57,8 @@ interface ListingFormProps {
   showSubmitButton?: boolean;
   /** Optional form id for external submit button (e.g. form="id"). */
   formId?: string;
+  /** Edit mode: called after a successful update (e.g. toast). */
+  onSaved?: () => void;
 }
 
 export function ListingForm({
@@ -66,6 +69,7 @@ export function ListingForm({
   updateAction,
   showSubmitButton = true,
   formId,
+  onSaved,
 }: ListingFormProps) {
   const router = useRouter();
   const [errors, setErrors] = useState<FormErrors>({});
@@ -196,6 +200,7 @@ export function ListingForm({
         return;
       }
       setSubmitError(null);
+      onSaved?.();
       router.refresh();
     }
   }
@@ -225,6 +230,28 @@ export function ListingForm({
           <option value="in_stock">In stock</option>
           <option value="opportunity">Opportunity</option>
         </select>
+      </div>
+
+      <div>
+        <label htmlFor="pricing_category" className="block text-sm font-medium text-zinc-700">
+          Pricing category
+        </label>
+        <select
+          id="pricing_category"
+          name="pricing_category"
+          defaultValue={listing?.pricing_category ?? ''}
+          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900"
+        >
+          <option value="">Not set</option>
+          {PRICING_CATEGORY_VALUES.map((v) => (
+            <option key={v} value={v}>
+              {PRICING_CATEGORY_LABELS[v]}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-zinc-500">
+          Used for homepage segments and public filters (optional).
+        </p>
       </div>
 
       {/* Vehicle basics */}
@@ -374,7 +401,7 @@ export function ListingForm({
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="price_landed_gbp" className="block text-sm font-medium text-zinc-700">
-              Price landed (GBP)
+              Your price (GBP)
             </label>
             <input
               id="price_landed_gbp"

@@ -4,6 +4,12 @@ import { useRef, useState } from 'react';
 import { BUSINESS_WHATSAPP_E164 } from '@/lib/constants';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import { formatGBP } from '@/lib/format';
+import { LEAD_COUNTRY_OTHERS, LEAD_COUNTRY_TOP } from '@/lib/countryOptions';
+import {
+  DEFAULT_PHONE_DIAL,
+  PHONE_DIAL_OTHER,
+  PHONE_DIAL_PRIORITY,
+} from '@/lib/phoneDialCodes';
 import { leadSchema } from '@/lib/validations/lead';
 
 export type LeadModalContext = 'general' | 'listing';
@@ -24,6 +30,24 @@ interface LeadModalProps {
   onClose: () => void;
 }
 
+/** Avoid showing Zod / library wording to visitors. */
+function userFacingFieldError(field: string, raw: string): string {
+  const t = raw.toLowerCase();
+  if (
+    t.includes('expected string') ||
+    t.includes('received undefined') ||
+    t.includes('received null') ||
+    t.includes('invalid input') ||
+    t.includes('invalid_type')
+  ) {
+    if (field === 'company' || field === 'website') {
+      return 'Please check this field or leave it blank.';
+    }
+    return 'Please check this field and try again.';
+  }
+  return raw;
+}
+
 function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?: ListingInfo | null): string {
   const carTitle =
     listing && listing.year && listing.make && listing.model
@@ -35,7 +59,7 @@ function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?:
       `Hi TJMotors, my name is ${name}. I'm interested in the ${carTitle} (Listing ID: ${listing.id}). Could you please confirm availability and share the next steps? Thank you.`,
     ];
     if (listing.price_landed_gbp != null) {
-      lines.push(`Landed UK price: ${formatGBP(listing.price_landed_gbp)}`);
+      lines.push(`Your price: ${formatGBP(listing.price_landed_gbp)}`);
     }
     return lines.join('\n');
   }
@@ -56,9 +80,11 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
     if (!form) return;
 
     const name = (form.querySelector('[name="name"]') as HTMLInputElement).value.trim();
-    const phone = (form.querySelector('[name="phone"]') as HTMLInputElement).value.trim();
+    const phoneDial = (form.querySelector('[name="phone_dial"]') as HTMLSelectElement).value.trim();
+    const phoneNational = (form.querySelector('[name="phone"]') as HTMLInputElement).value.trim();
+    const phone = `${phoneDial} ${phoneNational}`.replace(/\s+/g, ' ').trim();
     const email = (form.querySelector('[name="email"]') as HTMLInputElement).value.trim();
-    const country = (form.querySelector('[name="country"]') as HTMLInputElement).value.trim();
+    const country = (form.querySelector('[name="country"]') as HTMLSelectElement).value;
     const company = (form.querySelector('[name="company"]') as HTMLInputElement)?.value?.trim();
     const website = (form.querySelector('[name="website"]') as HTMLInputElement)?.value?.trim();
 
@@ -67,15 +93,15 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
       phone,
       email,
       country,
-      company: company || undefined,
-      website: website || undefined,
+      company,
+      website,
     });
 
     if (!parsed.success) {
       const next: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
         const path = issue.path[0]?.toString();
-        if (path) next[path] = issue.message;
+        if (path) next[path] = userFacingFieldError(path, issue.message);
       }
       setErrors(next);
       return;
@@ -148,21 +174,60 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="name"
               type="text"
               required
+              autoComplete="name"
+              maxLength={120}
               className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.name && <p className="mt-0.5 text-xs text-red-600">{errors.name}</p>}
           </div>
           <div>
-            <label htmlFor="lead-phone" className="block text-sm font-medium text-secondary">
+            <p id="lead-phone-label" className="block text-sm font-medium text-secondary">
               Phone <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="lead-phone"
-              name="phone"
-              type="tel"
-              required
-              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
-            />
+            </p>
+            <div
+              className="mt-1 flex rounded-lg border border-border-subtle bg-surface transition-colors focus-within:border-gold focus-within:ring-1 focus-within:ring-gold"
+              role="group"
+              aria-labelledby="lead-phone-label"
+            >
+              <label htmlFor="lead-phone-dial" className="sr-only">
+                Country calling code
+              </label>
+              <select
+                id="lead-phone-dial"
+                name="phone_dial"
+                defaultValue={DEFAULT_PHONE_DIAL}
+                className="max-w-[min(13rem,52%)] shrink-0 cursor-pointer border-0 border-r border-border-subtle bg-surface-alt/60 py-2 pl-2.5 pr-1 text-sm text-primary focus:outline-none focus:ring-0 sm:max-w-[11rem]"
+              >
+                <optgroup label="Common">
+                  {PHONE_DIAL_PRIORITY.map(({ dial, label }) => (
+                    <option key={dial} value={dial}>
+                      {label}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="More countries">
+                  {PHONE_DIAL_OTHER.map(({ dial, label }) => (
+                    <option key={`${dial}-${label}`} value={dial}>
+                      {label}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              <label htmlFor="lead-phone" className="sr-only">
+                Mobile or landline number
+              </label>
+              <input
+                id="lead-phone"
+                name="phone"
+                type="tel"
+                required
+                autoComplete="tel-national"
+                inputMode="tel"
+                maxLength={18}
+                placeholder="e.g. 7700 900123"
+                className="min-w-0 flex-1 border-0 bg-transparent py-2 pl-3 pr-3 text-primary placeholder:text-muted/70 focus:outline-none focus:ring-0"
+              />
+            </div>
             {errors.phone && <p className="mt-0.5 text-xs text-red-600">{errors.phone}</p>}
           </div>
           <div>
@@ -174,6 +239,8 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               name="email"
               type="email"
               required
+              autoComplete="email"
+              maxLength={254}
               className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.email && <p className="mt-0.5 text-xs text-red-600">{errors.email}</p>}
@@ -182,13 +249,32 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
             <label htmlFor="lead-country" className="block text-sm font-medium text-secondary">
               Country <span className="text-red-500">*</span>
             </label>
-            <input
+            <select
               id="lead-country"
               name="country"
-              type="text"
               required
+              autoComplete="country-name"
               className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
-            />
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Select country
+              </option>
+              <optgroup label="Common">
+                {LEAD_COUNTRY_TOP.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="All countries">
+                {LEAD_COUNTRY_OTHERS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
             {errors.country && <p className="mt-0.5 text-xs text-red-600">{errors.country}</p>}
           </div>
           <div>
@@ -199,8 +285,11 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               id="lead-company"
               name="company"
               type="text"
+              autoComplete="organization"
+              maxLength={200}
               className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
+            {errors.company && <p className="mt-0.5 text-xs text-red-600">{errors.company}</p>}
           </div>
           <div>
             <label htmlFor="lead-website" className="block text-sm font-medium text-secondary">
@@ -209,8 +298,11 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
             <input
               id="lead-website"
               name="website"
-              type="url"
-              placeholder="https://"
+              type="text"
+              inputMode="url"
+              autoComplete="url"
+              maxLength={2000}
+              placeholder="e.g. namotors.co.uk"
               className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
             />
             {errors.website && <p className="mt-0.5 text-xs text-red-600">{errors.website}</p>}

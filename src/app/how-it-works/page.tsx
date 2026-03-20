@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { TopNav } from '@/components/TopNav';
+import { SiteFooter } from '@/components/SiteFooter';
 import { HowItWorksCTA } from '@/components/HowItWorksCTA';
 import { HowItWorksTimelineDesktop } from '@/components/HowItWorksTimelineDesktop';
 import { HowItWorksTimelineResponsive, type TimelineStepData } from '@/components/HowItWorksTimelineResponsive';
@@ -89,13 +90,7 @@ export default function HowItWorksPage() {
 
       <HowItWorksCTA />
 
-      <footer className="mt-auto border-t border-border-subtle bg-surface px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-center text-sm text-muted">
-            © {new Date().getFullYear()} {BRAND_SHORT}. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

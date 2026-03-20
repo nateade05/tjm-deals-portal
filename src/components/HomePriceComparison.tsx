@@ -44,19 +44,19 @@ const EXAMPLES = [
     vehicle: 'Bentley Continental GT',
     ukPrice: 46_500,
     importPrice: 30_000,
-    imageUrl: 'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=800&q=80',
+    imageUrl: '/bentley_gt_price_advantage.jpg',
   },
   {
     vehicle: 'Volkswagen Golf 1.4 TSI',
     ukPrice: 10_500,
     importPrice: 5_500,
-    imageUrl: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80',
+    imageUrl: '/golf_price_advantage.jpg',
   },
   {
     vehicle: 'BMW 216d Gran Tourer',
     ukPrice: 8_500,
     importPrice: 4_500,
-    imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
+    imageUrl: '/216d_price_advantage.jpg',
   },
 ] as const;
 

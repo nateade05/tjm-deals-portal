@@ -2,30 +2,46 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { buildListingsHref } from '@/lib/listingsHref';
 import type { ListingCategory } from '@/lib/supabase/types';
 
-const TABS: { value: ListingCategory; label: string }[] = [
+type TabValue = 'all' | ListingCategory;
+
+const TABS: { value: TabValue; label: string }[] = [
+  { value: 'all', label: 'All' },
   { value: 'in_stock', label: 'In Stock' },
   { value: 'opportunity', label: 'Opportunities' },
 ];
 
-export function CategoryTabs() {
+interface CategoryTabsProps {
+  className?: string;
+}
+
+export function CategoryTabs({ className = '' }: CategoryTabsProps) {
   const searchParams = useSearchParams();
-  const current = (searchParams.get('category') as ListingCategory) || 'in_stock';
+  const pricingCategory = searchParams.get('pricingCategory');
+  const raw = searchParams.get('category');
+  const current: TabValue =
+    raw === 'in_stock' || raw === 'opportunity' ? raw : 'all';
 
   return (
-    <div className="flex w-full rounded-full border border-border-subtle bg-surface-alt p-1 text-xs sm:text-sm">
+    <div
+      className={`flex w-full rounded-full border border-border-subtle/45 bg-surface-alt/60 p-0.5 text-xs shadow-inner sm:text-sm ${className}`}
+    >
       {TABS.map(({ value, label }) => {
         const isActive = current === value;
-        const href = `/listings?category=${value}`;
+        const href = buildListingsHref({
+          categoryTab: value === 'all' ? null : value,
+          pricingCategory: pricingCategory || 'all',
+        });
         return (
           <Link
             key={value}
             href={href}
-            className={`flex-1 rounded-full px-3 py-2.5 text-center font-medium transition-colors ${
+            className={`flex-1 rounded-full px-2 py-2 text-center text-[13px] font-semibold transition-all duration-200 sm:px-3 sm:py-2.5 sm:text-sm ${
               isActive
-                ? 'bg-surface text-primary shadow-sm'
-                : 'text-secondary hover:text-primary transition-colors'
+                ? 'bg-surface/95 text-primary ring-1 ring-border-subtle/35'
+                : 'text-secondary hover:text-primary'
             }`}
           >
             {label}

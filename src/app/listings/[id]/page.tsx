@@ -1,14 +1,24 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { TopNav } from '@/components/TopNav';
+import { SiteFooter } from '@/components/SiteFooter';
 import { MediaGallery } from '@/components/MediaGallery';
 import { StatRow } from '@/components/StatRow';
 import { ListingDetailCTA } from '@/components/ListingDetailCTA';
 import { CopyLinkButton } from '@/components/CopyLinkButton';
+import { YourPriceLabel } from '@/components/YourPriceLabel';
+import { MoreListingsCarousel } from '@/components/MoreListingsCarousel';
 import { supabaseServerPublic } from '@/lib/supabase/server';
 import type { Listing, ListingMedia } from '@/lib/supabase/types';
 import { formatGBP, formatMiles, timeAgo } from '@/lib/format';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
+import {
+  buildSignedUrlsForImagePaths,
+  createSignedListingMediaUrl,
+} from '@/lib/listingImages';
+import { listingFromDbRow } from '@/lib/listingRow';
+import { fetchMoreListingsForDetail } from '@/lib/moreListings';
+import { PRICING_CATEGORY_LABELS } from '@/lib/pricingCategory';
 
 export const revalidate = 120;
 
@@ -19,15 +29,14 @@ interface ListingPageProps {
 function getCategoryBadge(category: Listing['category']) {
   if (category === 'in_stock') {
     return {
-      label: 'IN STOCK',
+      label: 'In stock',
       badgeClass:
-        'bg-transparent text-secondary border-2 border-border-strong',
+        'bg-surface/95 text-secondary ring-1 ring-border-strong backdrop-blur-sm',
     };
   }
   return {
-    label: 'OPPORTUNITY',
-    badgeClass:
-      'bg-transparent text-gold border-2 border-gold',
+    label: 'Opportunity',
+    badgeClass: 'bg-gold-tint/90 text-gold ring-1 ring-gold/45 backdrop-blur-sm',
   };
 }
 
@@ -49,7 +58,10 @@ async function getListingWithMedia(id: string): Promise<{ listing: Listing; medi
     .eq('listing_id', id)
     .order('sort_order', { ascending: true });
 
-  return { listing: listing as Listing, media: (media ?? []) as ListingMedia[] };
+  return {
+    listing: listingFromDbRow(listing as Record<string, unknown>),
+    media: (media ?? []) as ListingMedia[],
+  };
 }
 
 type Props = { params: Promise<{ id: string }> };
@@ -73,10 +85,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let firstImage: string | undefined;
   const firstImageRow = media.find((m) => m.type === 'image');
   if (firstImageRow) {
-    const { data: signed } = await supabase.storage
-      .from('listing-media')
-      .createSignedUrl(firstImageRow.storage_path, 60 * 60);
-    if (signed?.signedUrl) firstImage = signed.signedUrl;
+    const url = await createSignedListingMediaUrl(supabase, firstImageRow.storage_path);
+    if (url) firstImage = url;
   }
 
   return {
@@ -105,19 +115,14 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
   const { listing, media } = data;
 
   const supabase = await supabaseServerPublic();
-  const images: string[] = [];
-  let videoUrl: string | undefined;
+  const imagePaths = media.filter((m) => m.type === 'image').map((m) => m.storage_path);
+  const images = await buildSignedUrlsForImagePaths(supabase, imagePaths);
 
-  for (const item of media) {
-    const { data: signed } = await supabase.storage
-      .from('listing-media')
-      .createSignedUrl(item.storage_path, 60 * 60);
-    if (!signed?.signedUrl) continue;
-    if (item.type === 'image') {
-      images.push(signed.signedUrl);
-    } else if (item.type === 'video' && !videoUrl) {
-      videoUrl = signed.signedUrl;
-    }
+  const videoRow = media.find((m) => m.type === 'video');
+  let videoUrl: string | undefined;
+  if (videoRow) {
+    const u = await createSignedListingMediaUrl(supabase, videoRow.storage_path);
+    videoUrl = u ?? undefined;
   }
 
   const title =
@@ -125,42 +130,45 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
       ? `${listing.year} ${listing.make} ${listing.model}`
       : listing.title;
 
+  const { listings: moreListings, coverUrls: moreCovers } = await fetchMoreListingsForDetail(id, {
+    pricingCategory: listing.pricing_category,
+    listingCategory: listing.category,
+  });
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <TopNav />
-      <main className="flex-1 px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-primary sm:text-3xl">
-                {title}
-              </h1>
-              <CopyLinkButton path={`/listings/${id}`} />
-            </div>
-            <p className="text-sm text-muted">
-              Listed {timeAgo(listing.listed_at)}
-            </p>
+      <main className="flex-1 px-4 pb-12 pt-4 sm:px-6 sm:pt-6">
+        <div className="mx-auto grid max-w-6xl gap-7 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-10 lg:gap-x-14">
+          <article className="min-w-0 space-y-3 lg:space-y-4">
+            <header className="space-y-1">
+              <div className="flex flex-wrap items-start gap-x-2 gap-y-2 sm:gap-x-3">
+                <h1 className="min-w-0 max-w-[calc(100%-3rem)] text-2xl font-bold leading-[1.15] tracking-tight text-primary sm:text-3xl lg:text-[1.85rem]">
+                  {title}
+                </h1>
+                <CopyLinkButton path={`/listings/${id}`} />
+              </div>
+              <p className="text-[13px] font-medium text-muted">Listed {timeAgo(listing.listed_at)}</p>
+            </header>
             <MediaGallery images={images} videoUrl={videoUrl} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="relative rounded-xl border border-border-subtle bg-surface p-5 shadow-sm">
+          </article>
+          <aside className="min-w-0 lg:sticky lg:top-20">
+            <div className="relative rounded-2xl border border-border-subtle/80 bg-surface p-5 shadow-md ring-1 ring-black/[0.05] sm:p-6">
               {(() => {
                 const badge = getCategoryBadge(listing.category);
                 return (
                   <span
-                    className={`absolute right-2 top-2 inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[11px] font-semibold tracking-wide whitespace-nowrap sm:right-3 sm:top-3 sm:text-xs ${badge.badgeClass}`}
-                    aria-label={`Listing status: ${badge.label === 'IN STOCK' ? 'In Stock' : 'Opportunity'}`}
+                    className={`absolute right-3 top-3 inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm sm:right-4 sm:top-4 ${badge.badgeClass}`}
+                    aria-label={`Listing status: ${listing.category === 'in_stock' ? 'In stock' : 'Opportunity'}`}
                   >
-                    {badge.label}
+                    <span className="text-[10px] font-semibold uppercase tracking-wider">{badge.label}</span>
                   </span>
                 );
               })()}
-              <div className="pt-6 sm:pt-8">
-                <h2 className="text-lg font-semibold text-primary">
-                  Vehicle details
-                </h2>
-                <div className="mt-4">
-                  <StatRow label="Price landed (GBP)" value={formatGBP(listing.price_landed_gbp)} />
+              <div className="pt-1 sm:pt-2">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Vehicle details</h2>
+                <div className="mt-3 space-y-0 sm:mt-4">
+                  <YourPriceLabel value={formatGBP(listing.price_landed_gbp)} />
                   {listing.estimated_resale_gbp != null && (
                     <StatRow
                       label="Estimated resale (GBP)"
@@ -170,15 +178,19 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
                   <StatRow label="Mileage" value={formatMiles(listing.mileage_mi)} />
                   {listing.year && <StatRow label="Year" value={listing.year} />}
                   {listing.colour && <StatRow label="Colour" value={listing.colour} />}
-                  {listing.transmission && (
-                    <StatRow label="Transmission" value={listing.transmission} />
-                  )}
+                  {listing.transmission && <StatRow label="Transmission" value={listing.transmission} />}
                   {listing.fuel && <StatRow label="Fuel" value={listing.fuel} />}
+                  {listing.pricing_category && (
+                    <StatRow
+                      label="Pricing category"
+                      value={PRICING_CATEGORY_LABELS[listing.pricing_category]}
+                    />
+                  )}
                 </div>
                 {listing.description && (
-                  <div className="mt-4 border-t border-border-subtle pt-4">
-                    <h3 className="text-sm font-semibold text-primary">Description</h3>
-                    <p className="mt-2 text-base text-secondary">{listing.description}</p>
+                  <div className="mt-5 border-t border-border-subtle/80 pt-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Description</h3>
+                    <p className="mt-2.5 text-[15px] leading-relaxed text-secondary">{listing.description}</p>
                   </div>
                 )}
                 <ListingDetailCTA
@@ -194,9 +206,11 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
                 />
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       </main>
+      <MoreListingsCarousel listings={moreListings} coverUrls={moreCovers} />
+      <SiteFooter />
     </div>
   );
 }

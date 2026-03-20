@@ -14,19 +14,19 @@ export function TopNav() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface/95 backdrop-blur-sm">
-        <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
+        <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             <Image
               src="/tjm-logo.png"
               alt="TJMotors logo"
-              width={28}
-              height={28}
-              className="h-7 w-7"
+              width={35}
+              height={35}
+              className="h-[34px] w-[34px] sm:h-9 sm:w-9"
               priority
             />
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-4 sm:flex">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="hidden items-center gap-5 sm:flex">
               <Link
                 href="/listings"
                 className="text-sm font-medium text-secondary hover:text-primary whitespace-nowrap transition-colors"
