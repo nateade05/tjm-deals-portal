@@ -7,7 +7,7 @@ function countPhoneDigits(s: string): number {
 }
 
 /**
- * Accepts bare domains (namotors.co.uk), www…, protocol-relative URLs, then validates.
+ * Accepts bare domains (mymotors.co.uk), www…, protocol-relative URLs, then validates.
  */
 export function normalizeLeadWebsite(raw: string): string {
   let t = raw.trim();
@@ -89,7 +89,7 @@ export const leadSchema = z.object({
     .transform((s) => (s === '' ? '' : normalizeLeadWebsite(s)))
     .refine((s) => s.length <= 2000, 'Website address is too long.')
     .refine((s) => s === '' || isValidHttpUrlForLead(s), {
-      message: 'Please enter a valid website (e.g. namotors.co.uk).',
+      message: 'Please enter a valid website (e.g. mymotors.co.uk).',
     })
     .transform((s) => (s === '' ? undefined : s)),
 });

@@ -2,11 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  /** Browsers often request /favicon.ico first; point at generated app icon (no default Vercel .ico). */
-  async rewrites() {
-    return [{ source: "/favicon.ico", destination: "/icon.png" }];
-  },
+  /** Tab icon: use `public/favicon.ico` from `npm run generate:icons` (real .ico, no rewrite flash). */
   images: {
+    /** Allow `quality` values used by `next/image` (e.g. HomeHero uses 82). */
+    qualities: [75, 82],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
       /** Supabase signed URLs for listing media (project subdomains). */

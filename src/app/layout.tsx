@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { BRAND_SHORT, TAGLINE } from "@/lib/constants";
+import { BRAND_SHORT, FAVICON_VERSION, TAGLINE } from "@/lib/constants";
+
+const faviconIco = `/favicon.ico?v=${FAVICON_VERSION}`;
 
 export const viewport: Viewport = {
   themeColor: "#faf9f6",
@@ -26,8 +28,17 @@ export const metadata: Metadata = {
   },
   description: TAGLINE,
   icons: {
-    icon: [{ url: "/icon.png", type: "image/png" }],
-    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+    /**
+     * PNG first: new URL vs old Vercel `.ico` cache on localhost.
+     * `.ico` uses `?v=` so Chrome’s favicon DB treats it as a fresh URL.
+     * (Avoid `src/app/favicon.ico` — Next adds a second hashed `/favicon.ico?...` link.)
+     */
+    icon: [
+      { url: `/icon.png?v=${FAVICON_VERSION}`, type: "image/png", sizes: "512x512" },
+      { url: faviconIco, sizes: "any" },
+    ],
+    shortcut: faviconIco,
+    apple: [{ url: `/apple-icon.png?v=${FAVICON_VERSION}`, type: "image/png", sizes: "180x180" }],
   },
   openGraph: {
     title: `${BRAND_SHORT} | Singapore car deals landed in the UK`,

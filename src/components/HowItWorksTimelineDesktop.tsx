@@ -69,6 +69,7 @@ export function HowItWorksTimelineDesktop({ steps }: HowItWorksTimelineDesktopPr
               className={`flex w-full justify-center ${textFirst ? 'xl:justify-end' : 'xl:justify-start'}`}
             >
               <StepImagePlaceholder
+                src={item.imageSrc}
                 alt={item.imagePlaceholder}
                 className="max-h-60 w-full max-w-md xl:max-h-[340px]"
               />
@@ -112,6 +113,7 @@ export function HowItWorksTimelineDesktop({ steps }: HowItWorksTimelineDesktopPr
                 className={`flex w-full justify-center ${textFirstLast ? 'xl:justify-end' : 'xl:justify-start'}`}
               >
                 <StepImagePlaceholder
+                  src={lastStep.imageSrc}
                   alt={lastStep.imagePlaceholder}
                   className="max-h-44 w-full max-w-md xl:max-h-[280px]"
                 />

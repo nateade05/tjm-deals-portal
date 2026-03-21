@@ -27,7 +27,10 @@ export interface TimelineStepData {
   step: number;
   title: string;
   body: string;
+  /** Short description for alt text / fallback label */
   imagePlaceholder: string;
+  /** Public path under `/public` for this step’s photo */
+  imageSrc: string;
 }
 
 interface HowItWorksTimelineResponsiveProps {
@@ -194,7 +197,11 @@ function ResponsiveLastStepWithEndAnchor({
             {step.body}
           </p>
           <div className="mt-1 w-full max-w-[240px] overflow-hidden rounded-lg shadow-sm sm:max-w-[260px]">
-            <StepImagePlaceholder alt={step.imagePlaceholder} className="min-h-[72px] sm:min-h-[80px]" />
+            <StepImagePlaceholder
+              src={step.imageSrc}
+              alt={step.imagePlaceholder}
+              className="min-h-[72px] sm:min-h-[80px]"
+            />
           </div>
         </div>
         {/* Spacer: pushes United Kingdom block to bottom so it aligns with end cap */}
@@ -250,7 +257,13 @@ export function HowItWorksTimelineResponsive({ steps }: HowItWorksTimelineRespon
           stepLabel={`STEP ${String(item.step).padStart(2, '0')}`}
           title={item.title}
           body={item.body}
-          imageNode={<StepImagePlaceholder alt={item.imagePlaceholder} className="min-h-[100px]" />}
+          imageNode={
+            <StepImagePlaceholder
+              src={item.imageSrc}
+              alt={item.imagePlaceholder}
+              className="min-h-[100px]"
+            />
+          }
           scrollDir={scrollDir}
         />
       ))}
