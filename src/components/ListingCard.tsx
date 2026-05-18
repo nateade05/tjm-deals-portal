@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import type { Listing } from '@/lib/supabase/types';
 import { formatGBP, formatMiles, timeAgo } from '@/lib/format';
 import { Card } from '@/components/ui/Card';
 import { ListingCardMedia } from '@/components/ListingCardMedia';
+import { analytics } from '@/lib/analytics';
 
 function isNewListing(listedAt: string): boolean {
   const sevenDaysAgo = new Date();
@@ -56,7 +59,7 @@ export function ListingCard({
   const alt = displayTitle(listing);
 
   return (
-    <Link href={href} className="group block">
+    <Link href={href} className="group block" onClick={() => analytics.listingCardClicked(listing)}>
       <Card
         padded={false}
         className="overflow-hidden border-border-subtle/70 shadow-sm ring-1 ring-black/[0.03] transition-all duration-300 ease-out motion-reduce:transition-none hover:-translate-y-1 motion-reduce:hover:translate-y-0 hover:border-border-strong/80 hover:shadow-lg"

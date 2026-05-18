@@ -41,4 +41,34 @@ export const analytics = {
   whatsappRedirected(listingId?: string | null) {
     fire('whatsapp_redirected', { listing_id: listingId ?? undefined });
   },
+
+  galleryOpened(listingId: string) {
+    fire('gallery_opened', { listing_id: listingId });
+  },
+
+  videoPlayed(listingId: string) {
+    fire('video_played', { listing_id: listingId });
+  },
+
+  listingCardClicked(listing: {
+    id: string;
+    make?: string | null;
+    model?: string | null;
+    year?: number | null;
+    price?: number | null;
+    category?: string;
+  }) {
+    fire('listing_card_clicked', {
+      listing_id: listing.id,
+      make: listing.make ?? undefined,
+      model: listing.model ?? undefined,
+      year: listing.year ?? undefined,
+      value: listing.price ?? undefined,
+      category: listing.category,
+    });
+  },
+
+  copyLinkClicked(listingId: string) {
+    fire('copy_link_clicked', { listing_id: listingId });
+  },
 };

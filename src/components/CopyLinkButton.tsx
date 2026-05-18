@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { analytics } from '@/lib/analytics';
 
 interface CopyLinkButtonProps {
   path: string;
+  listingId: string;
   className?: string;
 }
 
-export function CopyLinkButton({ path, className }: CopyLinkButtonProps) {
+export function CopyLinkButton({ path, listingId, className }: CopyLinkButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -15,6 +17,7 @@ export function CopyLinkButton({ path, className }: CopyLinkButtonProps) {
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    analytics.copyLinkClicked(listingId);
   }
 
   return (

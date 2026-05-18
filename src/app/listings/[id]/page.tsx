@@ -156,11 +156,11 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
                 <h1 className="min-w-0 max-w-[calc(100%-3rem)] text-2xl font-bold leading-[1.15] tracking-tight text-primary sm:text-3xl lg:text-[1.85rem]">
                   {title}
                 </h1>
-                <CopyLinkButton path={`/listings/${id}`} />
+                <CopyLinkButton path={`/listings/${id}`} listingId={id} />
               </div>
               <p className="text-[13px] font-medium text-muted">Listed {timeAgo(listing.listed_at)}</p>
             </header>
-            <MediaGallery key={listing.id} images={images} videoUrl={videoUrl} />
+            <MediaGallery key={listing.id} images={images} videoUrl={videoUrl} listingId={listing.id} />
           </article>
           <aside className="min-w-0 lg:sticky lg:top-20">
             <div className="relative rounded-2xl border border-border-subtle/80 bg-surface p-5 shadow-md ring-1 ring-black/[0.05] sm:p-6">

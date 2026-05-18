@@ -66,14 +66,17 @@ export default function RootLayout({
         {children}
         {GA_ID && (
           <>
+            {/* Define window.gtag before hydration so component useEffect calls don't miss it */}
+            <Script id="ga-define" strategy="beforeInteractive">{`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){window.dataLayer.push(arguments);}
+              window.gtag = gtag;
+            `}</Script>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
               strategy="afterInteractive"
             />
-            <Script id="ga-init" strategy="afterInteractive">{`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){window.dataLayer.push(arguments);}
-              window.gtag = gtag;
+            <Script id="ga-config" strategy="afterInteractive">{`
               gtag('js', new Date());
               gtag('config', '${GA_ID}');
             `}</Script>

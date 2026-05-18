@@ -3,10 +3,12 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { ListingImageViewerModal } from '@/components/ListingImageViewerModal';
+import { analytics } from '@/lib/analytics';
 
 interface MediaGalleryProps {
   images: string[];
   videoUrl?: string;
+  listingId: string;
 }
 
 /** All images stacked with opacity crossfade — all load in parallel on mount, switching is instant. */
@@ -43,7 +45,7 @@ function ImageStage({
   );
 }
 
-export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
+export function MediaGallery({ images, videoUrl, listingId }: MediaGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
@@ -96,7 +98,8 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
     if (goodImages.length === 0) return;
     setViewerInitialIndex(safeIndex);
     setViewerOpen(true);
-  }, [goodImages.length, safeIndex]);
+    analytics.galleryOpened(listingId);
+  }, [goodImages.length, safeIndex, listingId]);
 
   return (
     <div className="space-y-4">
@@ -201,6 +204,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             src={videoUrl}
             preload="metadata"
             poster={goodImages[safeIndex]}
+            onPlay={() => analytics.videoPlayed(listingId)}
           >
             Your browser does not support the video tag.
           </video>
