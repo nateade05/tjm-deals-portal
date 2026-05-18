@@ -9,27 +9,36 @@ interface MediaGalleryProps {
   videoUrl?: string;
 }
 
-/** Single fixed-aspect stage; images always fill via cover + center (any source aspect). */
-function MainImageStage({
-  src,
+/** All images stacked with opacity crossfade — all load in parallel on mount, switching is instant. */
+function ImageStage({
+  images,
+  activeIndex,
   onError,
-  priority,
 }: {
-  src: string;
-  onError: () => void;
-  priority?: boolean;
+  images: string[];
+  activeIndex: number;
+  onError: (src: string) => void;
 }) {
   return (
     <div className="relative aspect-[16/10] w-full min-h-[220px] overflow-hidden rounded-2xl border border-border-subtle/70 bg-gradient-to-br from-surface-alt/90 to-section-soft/50 shadow-sm ring-1 ring-black/[0.04]">
-      <Image
-        src={src}
-        alt=""
-        fill
-        priority={priority}
-        onError={onError}
-        sizes="(max-width: 1024px) 100vw, 65vw"
-        className="object-cover object-center scale-[1.02] motion-reduce:scale-100"
-      />
+      {images.map((src, i) => (
+        <div
+          key={src}
+          className="absolute inset-0"
+          style={{ opacity: i === activeIndex ? 1 : 0, transition: 'opacity 200ms ease-in-out' }}
+          aria-hidden={i !== activeIndex}
+        >
+          <Image
+            src={src}
+            alt=""
+            fill
+            priority={i === 0}
+            onError={() => onError(src)}
+            sizes="(max-width: 1024px) 100vw, 65vw"
+            className="object-cover object-center scale-[1.02] motion-reduce:scale-100"
+          />
+        </div>
+      ))}
     </div>
   );
 }
@@ -55,7 +64,6 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
 
   const count = goodImages.length;
   const safeIndex = count === 0 ? 0 : Math.min(selectedIndex, count - 1);
-  const currentImage = goodImages[safeIndex] ?? goodImages[0];
   const showArrows = count > 1;
 
   const goPrev = useCallback(() => {
@@ -93,7 +101,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
   return (
     <div className="space-y-4">
       <div className="relative">
-        {currentImage ? (
+        {count > 0 ? (
           <>
             <button
               type="button"
@@ -102,11 +110,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
               aria-label="Open full-screen photo viewer"
               className="group relative block w-full cursor-zoom-in rounded-2xl text-left transition-[box-shadow,ring] duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-gold motion-reduce:transition-none"
             >
-              <MainImageStage
-                src={currentImage}
-                onError={() => markFailed(currentImage)}
-                priority={safeIndex === 0}
-              />
+              <ImageStage images={goodImages} activeIndex={safeIndex} onError={markFailed} />
               <span
                 className="pointer-events-none absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/35 text-white opacity-0 shadow-sm backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100 sm:right-4 sm:top-4"
                 aria-hidden
@@ -136,7 +140,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             No photos available
           </div>
         )}
-        {showArrows && currentImage && (
+        {showArrows && (
           <>
             <button
               type="button"
@@ -196,7 +200,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
             className="w-full max-h-[min(70vh,520px)] bg-black"
             src={videoUrl}
             preload="metadata"
-            poster={currentImage}
+            poster={goodImages[safeIndex]}
           >
             Your browser does not support the video tag.
           </video>

@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 
 const ZOOM_LEVEL = 2.15;
 const DRAG_THRESHOLD_PX = 10;
@@ -104,6 +105,18 @@ export function ListingImageViewerModal({
     const t = window.setTimeout(() => closeBtnRef.current?.focus(), 10);
     return () => window.clearTimeout(t);
   }, [open]);
+
+  // Preload adjacent images so navigating between slides is instant.
+  useEffect(() => {
+    if (!open || images.length <= 1) return;
+    const preload = (i: number) => {
+      if (i < 0 || i >= images.length) return;
+      const img = new window.Image();
+      img.src = images[i];
+    };
+    preload(index - 1);
+    preload(index + 1);
+  }, [open, index, images]);
 
   const computePanBounds = useCallback(() => {
     const stage = stageRef.current;
@@ -430,14 +443,12 @@ export function ListingImageViewerModal({
                 }`}
                 aria-label={`Show image ${i + 1}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={src}
                   alt=""
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.visibility = 'hidden';
-                  }}
+                  fill
+                  sizes="72px"
+                  className="object-cover"
                 />
               </button>
             ))}
