@@ -38,9 +38,10 @@ const schema = z.object({
 type FormErrors = Record<string, string>;
 
 function capitalizeFirst(s: string): string {
-  const t = s.trim();
-  if (!t) return '';
-  return t.charAt(0).toUpperCase() + t.slice(1);
+  const leading = s.match(/^\s*/)?.[0] ?? '';
+  const rest = s.slice(leading.length);
+  if (!rest) return leading;
+  return leading + rest.charAt(0).toUpperCase() + rest.slice(1);
 }
 
 function computeTitle(year: number | null, make: string, model: string): string {
