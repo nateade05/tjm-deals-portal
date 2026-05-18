@@ -75,9 +75,12 @@ export const leadSchema = z.object({
     .email('That doesn’t look like a valid email — please check and try again.')
     .max(254, 'Email address is too long.'),
 
-  country: z
-    .string()
-    .refine((c) => COUNTRY_OPTION_SET.has(c), 'Please choose your country from the list.'),
+  country: optionalFormString
+    .transform((v) => (v == null ? '' : String(v).trim()))
+    .refine(
+      (c) => c === '' || COUNTRY_OPTION_SET.has(c),
+      'Please choose your country from the list.'
+    ),
 
   company: optionalFormString
     .transform((v) => (v == null ? '' : String(v)).trim())

@@ -3,7 +3,7 @@ import { TopNav } from '@/components/TopNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ListingsClient } from './_ListingsClient';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
-import { supabaseServerPublic } from '@/lib/supabase/server';
+import { supabaseServerPublic, supabaseServerServiceRole } from '@/lib/supabase/server';
 import type { ListingCategory } from '@/lib/supabase/types';
 import { buildCoverUrlMapForListingIds } from '@/lib/listingImages';
 import { listingFromDbRow } from '@/lib/listingRow';
@@ -55,10 +55,26 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
   const { data } = await query;
   const listings = (data ?? []).map((row) => listingFromDbRow(row as Record<string, unknown>));
 
+  const listingIds = listings.map((l) => l.id);
+
   const coverUrls =
-    listings.length > 0
-      ? await buildCoverUrlMapForListingIds(supabase, listings.map((l) => l.id))
+    listingIds.length > 0
+      ? await buildCoverUrlMapForListingIds(supabase, listingIds)
       : {};
+
+  const leadCounts: Record<string, number> = {};
+  if (listingIds.length > 0) {
+    const sc = supabaseServerServiceRole() ?? supabase;
+    const { data: leadRows } = await sc
+      .from('leads')
+      .select('listing_id')
+      .in('listing_id', listingIds);
+    for (const row of leadRows ?? []) {
+      if (row.listing_id) {
+        leadCounts[row.listing_id] = (leadCounts[row.listing_id] ?? 0) + 1;
+      }
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -72,7 +88,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
             </p>
           </header>
 
-          <ListingsClient initialListings={listings} coverUrls={coverUrls} />
+          <ListingsClient initialListings={listings} coverUrls={coverUrls} leadCounts={leadCounts} />
         </div>
       </main>
       <SiteFooter />

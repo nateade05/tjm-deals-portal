@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BUSINESS_WHATSAPP_E164 } from '@/lib/constants';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
@@ -12,6 +12,7 @@ import {
   PHONE_DIAL_PRIORITY,
 } from '@/lib/phoneDialCodes';
 import { leadSchema } from '@/lib/validations/lead';
+import { analytics } from '@/lib/analytics';
 
 export type LeadModalContext = 'general' | 'listing';
 
@@ -68,11 +69,19 @@ function buildWhatsAppMessage(context: LeadModalContext, name: string, listing?:
   return `Hi TJMotors, my name is ${name}. I'm interested in importing a car from Singapore to the UK. Could you share what you currently have available and how the process works? Thank you.`;
 }
 
+const inputClass =
+  'mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors';
+
 export function LeadModal({ context, listing, onClose }: LeadModalProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
+  useEffect(() => {
+    analytics.leadModalOpened(context, listing?.id);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -85,18 +94,12 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
     const phoneNational = (form.querySelector('[name="phone"]') as HTMLInputElement).value.trim();
     const phone = `${phoneDial} ${phoneNational}`.replace(/\s+/g, ' ').trim();
     const email = (form.querySelector('[name="email"]') as HTMLInputElement).value.trim();
-    const country = (form.querySelector('[name="country"]') as HTMLSelectElement).value;
+    const countryEl = form.querySelector('[name="country"]') as HTMLSelectElement | null;
+    const country = countryEl?.value ?? '';
     const company = (form.querySelector('[name="company"]') as HTMLInputElement)?.value?.trim();
     const website = (form.querySelector('[name="website"]') as HTMLInputElement)?.value?.trim();
 
-    const parsed = leadSchema.safeParse({
-      name,
-      phone,
-      email,
-      country,
-      company,
-      website,
-    });
+    const parsed = leadSchema.safeParse({ name, phone, email, country, company, website });
 
     if (!parsed.success) {
       const next: Record<string, string> = {};
@@ -133,6 +136,9 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
         return;
       }
 
+      analytics.leadSubmitted(listing?.id);
+      analytics.whatsappRedirected(listing?.id);
+
       const text = buildWhatsAppMessage(context, parsed.data.name, listing);
       const url = buildWhatsAppUrl({ phoneE164: BUSINESS_WHATSAPP_E164, text });
       window.location.href = url;
@@ -142,7 +148,6 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
     }
   }
 
-  /** Portal to body so listing pages (modal inside main) still stack above later siblings e.g. More listings. */
   if (typeof document === 'undefined') return null;
 
   return createPortal(
@@ -174,6 +179,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
         )}
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          {/* Core fields — always visible */}
           <div>
             <label htmlFor="lead-name" className="block text-sm font-medium text-secondary">
               Name <span className="text-red-500">*</span>
@@ -185,10 +191,11 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               required
               autoComplete="name"
               maxLength={120}
-              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
+              className={inputClass}
             />
             {errors.name && <p className="mt-0.5 text-xs text-red-600">{errors.name}</p>}
           </div>
+
           <div>
             <p id="lead-phone-label" className="block text-sm font-medium text-secondary">
               Phone <span className="text-red-500">*</span>
@@ -198,9 +205,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               role="group"
               aria-labelledby="lead-phone-label"
             >
-              <label htmlFor="lead-phone-dial" className="sr-only">
-                Country calling code
-              </label>
+              <label htmlFor="lead-phone-dial" className="sr-only">Country calling code</label>
               <select
                 id="lead-phone-dial"
                 name="phone_dial"
@@ -209,22 +214,16 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               >
                 <optgroup label="Common">
                   {PHONE_DIAL_PRIORITY.map(({ dial, label }) => (
-                    <option key={dial} value={dial}>
-                      {label}
-                    </option>
+                    <option key={dial} value={dial}>{label}</option>
                   ))}
                 </optgroup>
                 <optgroup label="More countries">
                   {PHONE_DIAL_OTHER.map(({ dial, label }) => (
-                    <option key={`${dial}-${label}`} value={dial}>
-                      {label}
-                    </option>
+                    <option key={`${dial}-${label}`} value={dial}>{label}</option>
                   ))}
                 </optgroup>
               </select>
-              <label htmlFor="lead-phone" className="sr-only">
-                Mobile or landline number
-              </label>
+              <label htmlFor="lead-phone" className="sr-only">Mobile or landline number</label>
               <input
                 id="lead-phone"
                 name="phone"
@@ -239,6 +238,7 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
             </div>
             {errors.phone && <p className="mt-0.5 text-xs text-red-600">{errors.phone}</p>}
           </div>
+
           <div>
             <label htmlFor="lead-email" className="block text-sm font-medium text-secondary">
               Email <span className="text-red-500">*</span>
@@ -250,72 +250,86 @@ export function LeadModal({ context, listing, onClose }: LeadModalProps) {
               required
               autoComplete="email"
               maxLength={254}
-              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
+              className={inputClass}
             />
             {errors.email && <p className="mt-0.5 text-xs text-red-600">{errors.email}</p>}
           </div>
+
+          {/* Business details toggle */}
           <div>
-            <label htmlFor="lead-country" className="block text-sm font-medium text-secondary">
-              Country <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="lead-country"
-              name="country"
-              required
-              autoComplete="country-name"
-              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
-              defaultValue=""
+            <button
+              type="button"
+              onClick={() => setShowDetails((v) => !v)}
+              className="flex items-center gap-1.5 text-xs font-medium text-muted hover:text-secondary transition-colors"
             >
-              <option value="" disabled>
-                Select country
-              </option>
-              <optgroup label="Common">
-                {LEAD_COUNTRY_TOP.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="All countries">
-                {LEAD_COUNTRY_OTHERS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-            {errors.country && <p className="mt-0.5 text-xs text-red-600">{errors.country}</p>}
+              <span className="text-[10px] leading-none">{showDetails ? '▾' : '▸'}</span>
+              Business details
+              <span className="text-muted/60">(optional)</span>
+            </button>
+
+            {showDetails && (
+              <div className="mt-3 space-y-4">
+                <div>
+                  <label htmlFor="lead-country" className="block text-sm font-medium text-secondary">
+                    Country
+                  </label>
+                  <select
+                    id="lead-country"
+                    name="country"
+                    autoComplete="country-name"
+                    className={inputClass}
+                    defaultValue=""
+                  >
+                    <option value="">Select country</option>
+                    <optgroup label="Common">
+                      {LEAD_COUNTRY_TOP.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="All countries">
+                      {LEAD_COUNTRY_OTHERS.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  {errors.country && <p className="mt-0.5 text-xs text-red-600">{errors.country}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="lead-company" className="block text-sm font-medium text-secondary">
+                    Company
+                  </label>
+                  <input
+                    id="lead-company"
+                    name="company"
+                    type="text"
+                    autoComplete="organization"
+                    maxLength={200}
+                    className={inputClass}
+                  />
+                  {errors.company && <p className="mt-0.5 text-xs text-red-600">{errors.company}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="lead-website" className="block text-sm font-medium text-secondary">
+                    Website
+                  </label>
+                  <input
+                    id="lead-website"
+                    name="website"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="url"
+                    maxLength={2000}
+                    placeholder="e.g. mymotors.co.uk"
+                    className={inputClass}
+                  />
+                  {errors.website && <p className="mt-0.5 text-xs text-red-600">{errors.website}</p>}
+                </div>
+              </div>
+            )}
           </div>
-          <div>
-            <label htmlFor="lead-company" className="block text-sm font-medium text-secondary">
-              Company
-            </label>
-            <input
-              id="lead-company"
-              name="company"
-              type="text"
-              autoComplete="organization"
-              maxLength={200}
-              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
-            />
-            {errors.company && <p className="mt-0.5 text-xs text-red-600">{errors.company}</p>}
-          </div>
-          <div>
-            <label htmlFor="lead-website" className="block text-sm font-medium text-secondary">
-              Website
-            </label>
-            <input
-              id="lead-website"
-              name="website"
-              type="text"
-              inputMode="url"
-              autoComplete="url"
-              maxLength={2000}
-              placeholder="e.g. mymotors.co.uk"
-              className="mt-1 w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-primary focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-colors"
-            />
-            {errors.website && <p className="mt-0.5 text-xs text-red-600">{errors.website}</p>}
-          </div>
+
           <div className="flex gap-3 pt-2">
             <button
               type="button"

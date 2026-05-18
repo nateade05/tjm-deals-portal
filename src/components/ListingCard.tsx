@@ -4,6 +4,12 @@ import { formatGBP, formatMiles, timeAgo } from '@/lib/format';
 import { Card } from '@/components/ui/Card';
 import { ListingCardMedia } from '@/components/ListingCardMedia';
 
+function isNewListing(listedAt: string): boolean {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  return new Date(listedAt) > sevenDaysAgo;
+}
+
 interface ListingCardProps {
   listing: Listing;
   coverImageUrl?: string | null;
@@ -12,6 +18,8 @@ interface ListingCardProps {
   imageSizes?: string;
   /** LCP: set true for first card above the fold only. */
   imagePriority?: boolean;
+  /** Number of enquiries for this listing (shows badge when >= 2). */
+  leadCount?: number;
 }
 
 function displayTitle(listing: Listing): string {
@@ -42,6 +50,7 @@ export function ListingCard({
   showCategoryBadge = true,
   imageSizes,
   imagePriority = false,
+  leadCount,
 }: ListingCardProps) {
   const href = `/listings/${listing.id}`;
   const alt = displayTitle(listing);
@@ -66,6 +75,13 @@ export function ListingCard({
               <ListingTypeBadge category={listing.category} />
             </div>
           )}
+          {isNewListing(listing.listed_at) && (
+            <div className="absolute right-2.5 top-2.5 z-10 sm:right-3 sm:top-3">
+              <span className="inline-flex items-center rounded-md bg-emerald-500/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white shadow-sm backdrop-blur-md">
+                New
+              </span>
+            </div>
+          )}
         </div>
         <div className="px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5 sm:pt-4">
           <h2 className="line-clamp-2 text-base font-bold leading-snug tracking-tight text-primary sm:text-[1.0625rem]">
@@ -76,6 +92,11 @@ export function ListingCard({
             <span className="mx-1.5 text-border-strong">·</span>
             <span className="normal-case tracking-normal">{timeAgo(listing.listed_at)}</span>
           </p>
+          {leadCount != null && leadCount >= 2 && (
+            <p className="mt-1.5 text-[10px] font-medium text-secondary/65">
+              {leadCount} {leadCount === 1 ? 'person' : 'people'} enquired
+            </p>
+          )}
           <div className="mt-4 border-t border-border-subtle/50 pt-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Your price</p>
             <div className="mt-1 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">

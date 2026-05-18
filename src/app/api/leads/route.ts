@@ -7,7 +7,7 @@ interface LeadBody {
   name: string;
   phone: string;
   email: string;
-  country: string;
+  country?: string;
   company?: string;
   website?: string;
 }
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as LeadBody;
 
-    if (!body.name || !body.phone || !body.email || !body.country) {
+    if (!body.name || !body.phone || !body.email) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       name: clip(String(body.name).trim(), LIMITS.name),
       phone: clip(String(body.phone).trim(), LIMITS.phone),
       email: clip(String(body.email).trim(), LIMITS.email),
-      country: clip(String(body.country).trim(), LIMITS.country),
+      country: clip(String(body.country ?? '').trim(), LIMITS.country),
       company: body.company != null ? clip(String(body.company).trim(), LIMITS.company) || null : null,
       website: body.website != null ? clip(String(body.website).trim(), LIMITS.website) || null : null,
       source: 'website' as const,

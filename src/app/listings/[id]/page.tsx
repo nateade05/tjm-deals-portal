@@ -8,13 +8,14 @@ import { ListingDetailCTA } from '@/components/ListingDetailCTA';
 import { CopyLinkButton } from '@/components/CopyLinkButton';
 import { YourPriceLabel } from '@/components/YourPriceLabel';
 import { MoreListingsCarousel } from '@/components/MoreListingsCarousel';
-import { supabaseServerPublic } from '@/lib/supabase/server';
+import { supabaseServerPublic, supabaseServerServiceRole } from '@/lib/supabase/server';
+import { ListingViewTracker } from '@/components/ListingViewTracker';
 import type { Listing, ListingMedia } from '@/lib/supabase/types';
 import { formatGBP, formatMiles, timeAgo } from '@/lib/format';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
 import {
-  buildSignedUrlsForImagePaths,
-  createSignedListingMediaUrl,
+  buildPublicUrlsForImagePaths,
+  getPublicListingMediaUrl,
 } from '@/lib/listingImages';
 import { listingFromDbRow } from '@/lib/listingRow';
 import { fetchMoreListingsForDetail } from '@/lib/moreListings';
@@ -85,8 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let firstImage: string | undefined;
   const firstImageRow = media.find((m) => m.type === 'image');
   if (firstImageRow) {
-    const url = await createSignedListingMediaUrl(supabase, firstImageRow.storage_path);
-    if (url) firstImage = url;
+    firstImage = getPublicListingMediaUrl(supabase, firstImageRow.storage_path);
   }
 
   return {
@@ -116,14 +116,10 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
 
   const supabase = await supabaseServerPublic();
   const imagePaths = media.filter((m) => m.type === 'image').map((m) => m.storage_path);
-  const images = await buildSignedUrlsForImagePaths(supabase, imagePaths);
+  const images = buildPublicUrlsForImagePaths(supabase, imagePaths);
 
   const videoRow = media.find((m) => m.type === 'video');
-  let videoUrl: string | undefined;
-  if (videoRow) {
-    const u = await createSignedListingMediaUrl(supabase, videoRow.storage_path);
-    videoUrl = u ?? undefined;
-  }
+  const videoUrl = videoRow ? getPublicListingMediaUrl(supabase, videoRow.storage_path) : undefined;
 
   const title =
     listing.year && listing.make && listing.model
@@ -135,9 +131,27 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
     listingCategory: listing.category,
   });
 
+  let listingLeadCount = 0;
+  {
+    const sc = supabaseServerServiceRole() ?? supabase;
+    const { count } = await sc
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .eq('listing_id', id);
+    listingLeadCount = count ?? 0;
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopNav />
+      <ListingViewTracker
+        id={listing.id}
+        make={listing.make}
+        model={listing.model}
+        year={listing.year}
+        price={listing.price_landed_gbp}
+        category={listing.category}
+      />
       <main className="flex-1 px-4 pb-12 pt-4 sm:px-6 sm:pt-6">
         <div className="mx-auto grid max-w-6xl gap-7 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-10 lg:gap-x-14">
           <article className="min-w-0 space-y-3 lg:space-y-4">
@@ -192,6 +206,11 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
                     <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Description</h3>
                     <p className="mt-2.5 text-[15px] leading-relaxed text-secondary">{listing.description}</p>
                   </div>
+                )}
+                {listingLeadCount >= 2 && (
+                  <p className="mt-4 text-center text-[11px] font-medium text-secondary/60">
+                    {listingLeadCount} people have enquired about this vehicle
+                  </p>
                 )}
                 <ListingDetailCTA
                   listing={{

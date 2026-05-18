@@ -17,13 +17,14 @@ const MAX_PRICE_OPTIONS = Array.from({ length: 50 }, (_, i) => (i + 1) * 1000);
 interface ListingsClientProps {
   initialListings: Listing[];
   coverUrls: Record<string, string | undefined>;
+  leadCounts: Record<string, number>;
 }
 
 /** Curated marketplace control strip — tabs + refinements in one system (not stacked forms). */
 const selectChrome =
   'min-h-[44px] rounded-lg border-0 bg-transparent py-2 pl-0 pr-7 text-sm font-medium text-primary shadow-none ring-0 focus:ring-0 focus:outline-none cursor-pointer sm:min-h-0 sm:py-1.5';
 
-export function ListingsClient({ initialListings, coverUrls }: ListingsClientProps) {
+export function ListingsClient({ initialListings, coverUrls, leadCounts }: ListingsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryTab = searchParams.get('category');
@@ -223,6 +224,7 @@ export function ListingsClient({ initialListings, coverUrls }: ListingsClientPro
               showCategoryBadge
               imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               imagePriority={i === 0}
+              leadCount={leadCounts[listing.id]}
             />
           ))}
         </div>
