@@ -185,8 +185,8 @@ function ComparisonModule() {
             className="relative z-30 flex items-center justify-center overflow-visible lg:-ml-12 lg:min-h-[420px] lg:py-8 lg:mr-[-8rem] lg:translate-x-12"
           >
             {/* Layout footprint unchanged; inner image bleeds top/bottom via scale */}
-            <div className="relative aspect-[16/10] w-full overflow-visible lg:aspect-[4/3] lg:h-[380px] lg:min-h-[380px] lg:max-h-[380px] lg:w-[calc(100%+3.25rem)] lg:max-w-[580px]">
-              <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-[112%] w-[118%] -translate-x-1/2 -translate-y-1/2 items-stretch justify-center overflow-visible">
+            <div className="relative aspect-[16/10] w-full overflow-hidden lg:aspect-[4/3] lg:h-[380px] lg:min-h-[380px] lg:max-h-[380px] lg:w-[calc(100%+3.25rem)] lg:max-w-[580px] lg:overflow-visible">
+              <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-full w-full -translate-x-1/2 -translate-y-1/2 items-stretch justify-center overflow-hidden lg:h-[112%] lg:w-[118%] lg:overflow-visible">
                 <img
                   src={example.imageUrl}
                   alt=""
