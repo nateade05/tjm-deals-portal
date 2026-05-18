@@ -12,7 +12,7 @@ export function HomeHero() {
       {/* Image-led hero stage (full-width) */}
       <div className="absolute inset-0">
         <Image
-          src="/home-hero.png"
+          src="/home-hero.jpg"
           alt="Front-facing car with Singapore and London skyline blend"
           fill
           priority

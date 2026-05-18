@@ -126,20 +126,16 @@ export default async function ListingDetailPage({ params }: ListingPageProps) {
       ? `${listing.year} ${listing.make} ${listing.model}`
       : listing.title;
 
-  const { listings: moreListings, coverUrls: moreCovers } = await fetchMoreListingsForDetail(id, {
-    pricingCategory: listing.pricing_category,
-    listingCategory: listing.category,
-  });
-
-  let listingLeadCount = 0;
-  {
-    const sc = supabaseServerServiceRole() ?? supabase;
-    const { count } = await sc
-      .from('leads')
-      .select('id', { count: 'exact', head: true })
-      .eq('listing_id', id);
-    listingLeadCount = count ?? 0;
-  }
+  const sc = supabaseServerServiceRole() ?? supabase;
+  const [{ listings: moreListings, coverUrls: moreCovers }, { count: leadCount }] =
+    await Promise.all([
+      fetchMoreListingsForDetail(id, {
+        pricingCategory: listing.pricing_category,
+        listingCategory: listing.category,
+      }),
+      sc.from('leads').select('id', { count: 'exact', head: true }).eq('listing_id', id),
+    ]);
+  const listingLeadCount = leadCount ?? 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

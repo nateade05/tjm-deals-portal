@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import Image from 'next/image';
 
 const FEATURES = [
   {
@@ -40,59 +41,39 @@ const EXPANDED_COPY_HEIGHT = 120;
 
 function ImageStage({
   features,
-  currentIndex,
-  nextIndex,
-  isTransitioning,
+  activeIndex,
 }: {
   features: typeof FEATURES;
-  currentIndex: number;
-  nextIndex: number;
-  isTransitioning: boolean;
+  activeIndex: number;
 }) {
-  const current = features[currentIndex];
-  const next = features[nextIndex];
-
   return (
     <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl bg-surface-alt shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] sm:aspect-[16/10] lg:aspect-[3/2] lg:min-h-[360px]">
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/10 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/10 to-transparent"
         aria-hidden
       />
-      {/* Crossfade: opacity only for a smooth fade, no scale */}
-      <div
-        className="absolute inset-0"
-        style={{
-          transition: `opacity ${TRANSITION_MS}ms ease-in-out`,
-          opacity: isTransitioning ? 0 : 1,
-        }}
-        aria-hidden={isTransitioning}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={current?.imageUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
-      </div>
-      <div
-        className="absolute inset-0"
-        style={{
-          transition: `opacity ${TRANSITION_MS}ms ease-in-out`,
-          opacity: isTransitioning ? 1 : 0,
-        }}
-        aria-hidden={!isTransitioning}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={next?.imageUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
-      </div>
+      {/* All 5 images stay in the DOM so the browser preloads them all on mount.
+          Crossfade is handled by opacity alone — no mount/unmount flicker. */}
+      {features.map((f, i) => (
+        <div
+          key={f.id}
+          className="absolute inset-0"
+          style={{
+            opacity: i === activeIndex ? 1 : 0,
+            transition: `opacity ${TRANSITION_MS}ms ease-in-out`,
+          }}
+          aria-hidden={i !== activeIndex}
+        >
+          <Image
+            src={f.imageUrl}
+            alt=""
+            fill
+            priority={i === 0}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+          />
+        </div>
+      ))}
     </div>
   );
 }
@@ -112,7 +93,6 @@ function FeatureItem({
         isActive ? 'pl-5 lg:pl-6' : 'pl-0'
       } ${isActive ? 'bg-gold-tint/25' : ''}`}
     >
-      {/* Gold accent — smooth opacity/scale so it doesn’t pop */}
       <span
         className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-gold shadow-sm transition-all duration-300 ease-out"
         style={{ opacity: isActive ? 1 : 0, transform: isActive ? 'scaleY(1)' : 'scaleY(0.6)' }}
@@ -162,23 +142,10 @@ function FeatureItem({
 
 export function HomeValueProps() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [displayIndex, setDisplayIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleSelect = useCallback((index: number) => {
-    if (index === activeIndex) return;
     setActiveIndex(index);
-    setIsTransitioning(true);
-  }, [activeIndex]);
-
-  useEffect(() => {
-    if (!isTransitioning) return;
-    const t = setTimeout(() => {
-      setDisplayIndex(activeIndex);
-      setIsTransitioning(false);
-    }, TRANSITION_MS);
-    return () => clearTimeout(t);
-  }, [isTransitioning, activeIndex]);
+  }, []);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-olive-tint/45 via-olive-tint/50 to-olive-tint/40 px-4 py-16 sm:px-6 sm:py-20">
@@ -197,12 +164,7 @@ export function HomeValueProps() {
 
         <div className="mt-14 grid grid-cols-1 gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-16 lg:items-start">
           <div className="min-w-0 order-2 lg:order-1">
-            <ImageStage
-              features={FEATURES}
-              currentIndex={displayIndex}
-              nextIndex={activeIndex}
-              isTransitioning={isTransitioning}
-            />
+            <ImageStage features={FEATURES} activeIndex={activeIndex} />
           </div>
 
           <div className="min-w-0 order-1 lg:order-2 flex min-h-[400px] flex-col lg:min-h-[440px]">

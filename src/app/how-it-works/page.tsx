@@ -74,7 +74,7 @@ export default function HowItWorksPage() {
       </header>
 
       {/* Timeline — content-driven bottom padding so rail/end anchor feel close to CTA */}
-      <main className="relative overflow-hidden bg-surface pb-12 pt-12 lg:pb-16 lg:pt-20 xl:pb-24 xl:pt-28">
+      <main className="relative overflow-x-hidden bg-surface pb-12 pt-12 lg:pb-16 lg:pt-20 xl:pb-24 xl:pt-28">
         <div
           aria-hidden
           className="how-it-works-timeline-radial pointer-events-none absolute inset-0 hidden lg:block"

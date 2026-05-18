@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { ListingImageViewerModal } from '@/components/ListingImageViewerModal';
 
 interface MediaGalleryProps {
@@ -12,24 +13,22 @@ interface MediaGalleryProps {
 function MainImageStage({
   src,
   onError,
-  fetchPriority,
+  priority,
 }: {
   src: string;
   onError: () => void;
-  fetchPriority?: 'high' | 'low' | 'auto';
+  priority?: boolean;
 }) {
   return (
     <div className="relative aspect-[16/10] w-full min-h-[220px] overflow-hidden rounded-2xl border border-border-subtle/70 bg-gradient-to-br from-surface-alt/90 to-section-soft/50 shadow-sm ring-1 ring-black/[0.04]">
-      {/* Signed URLs + layout from fixed aspect container; native img avoids optimizer coupling */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={src}
         alt=""
+        fill
+        priority={priority}
         onError={onError}
-        decoding="async"
-        fetchPriority={fetchPriority}
         sizes="(max-width: 1024px) 100vw, 65vw"
-        className="absolute inset-0 h-full w-full object-cover object-center motion-reduce:scale-100 scale-[1.02]"
+        className="object-cover object-center scale-[1.02] motion-reduce:scale-100"
       />
     </div>
   );
@@ -106,7 +105,7 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
               <MainImageStage
                 src={currentImage}
                 onError={() => markFailed(currentImage)}
-                fetchPriority={safeIndex === 0 ? 'high' : 'auto'}
+                priority={safeIndex === 0}
               />
               <span
                 className="pointer-events-none absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/35 text-white opacity-0 shadow-sm backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100 sm:right-4 sm:top-4"
@@ -175,12 +174,13 @@ export function MediaGallery({ images, videoUrl }: MediaGalleryProps) {
                   : 'border-transparent opacity-85 ring-1 ring-transparent hover:border-border-strong hover:opacity-100'
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={src}
                 alt=""
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
                 onError={() => markFailed(src)}
+                sizes="96px"
               />
             </button>
           ))}
