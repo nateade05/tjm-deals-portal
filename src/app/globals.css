@@ -111,3 +111,35 @@
 .admin-save-toast {
   animation: admin-save-toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* Gold shimmer for stat numbers */
+@keyframes gold-shimmer {
+  0%   { background-position: -60% center; }
+  18%  { background-position: 70% center; }
+  31%  { background-position: 30% center; }
+  47%  { background-position: 120% center; }
+  58%  { background-position: 85% center; }
+  72%  { background-position: 170% center; }
+  83%  { background-position: 140% center; }
+  100% { background-position: 230% center; }
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    105deg,
+    #a07c45 0%,
+    #b08d57 35%,
+    #b08d57 42%,
+    #d4aa6a 46%,
+    #ecdda0 49%,
+    #d4aa6a 52%,
+    #b08d57 56%,
+    #b08d57 100%
+  );
+  background-size: 250% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gold-shimmer 18s ease-in-out infinite;
+}

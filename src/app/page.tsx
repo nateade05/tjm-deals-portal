@@ -6,6 +6,7 @@ import { HomeFeaturedListings } from '@/components/HomeFeaturedListings';
 import { SiteFooter } from '@/components/SiteFooter';
 import { BRAND_SHORT, TAGLINE } from '@/lib/constants';
 import { getFeaturedListings } from '@/lib/featuredListings';
+import { HomeCarsStat } from '@/components/HomeCarsStat';
 
 // Below-the-fold sections: separate chunks so initial load is smaller and faster
 function HomeSectionSkeleton({ className }: { className: string }) {
@@ -72,6 +73,7 @@ export default async function HomePage() {
         <HomeHero />
 
         <HomeFeaturedListings listings={listings} coverUrls={coverUrls} />
+        <HomeCarsStat />
         <HomePriceComparison />
         <HomeValueProps />
         <HomeSupplyCallout />

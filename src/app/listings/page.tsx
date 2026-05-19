@@ -11,7 +11,7 @@ import { pricingCategoryFromQuery, PRICING_CATEGORY_LABELS } from '@/lib/pricing
 
 export const revalidate = 120;
 
-type Search = { category?: string; pricingCategory?: string };
+type Search = { category?: string; pricingCategory?: string; sort?: string };
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Search> }): Promise<Metadata> {
   const { category, pricingCategory } = await searchParams;
@@ -33,17 +33,25 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 }
 
 export default async function ListingsPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const { category: rawCategory, pricingCategory: rawPricing } = await searchParams;
+  const { category: rawCategory, pricingCategory: rawPricing, sort: rawSort } = await searchParams;
   const listingType: 'all' | ListingCategory =
     rawCategory === 'in_stock' || rawCategory === 'opportunity' ? rawCategory : 'all';
   const pricingFilter = pricingCategoryFromQuery(rawPricing);
+  const sort = rawSort === 'price_asc' || rawSort === 'price_desc' ? rawSort : 'newest';
 
   const supabase = await supabaseServerPublic();
   let query = supabase
     .from('listings')
     .select('*')
-    .eq('status', 'live')
-    .order('updated_at', { ascending: false });
+    .eq('status', 'live');
+
+  if (sort === 'price_asc') {
+    query = query.order('price_landed_gbp', { ascending: true, nullsFirst: false });
+  } else if (sort === 'price_desc') {
+    query = query.order('price_landed_gbp', { ascending: false, nullsFirst: false });
+  } else {
+    query = query.order('updated_at', { ascending: false });
+  }
 
   if (listingType !== 'all') {
     query = query.eq('category', listingType);
@@ -88,7 +96,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
             </p>
           </header>
 
-          <ListingsClient initialListings={listings} coverUrls={coverUrls} leadCounts={leadCounts} />
+          <ListingsClient initialListings={listings} coverUrls={coverUrls} leadCounts={leadCounts} sort={sort} />
         </div>
       </main>
       <SiteFooter />

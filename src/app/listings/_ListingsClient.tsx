@@ -18,13 +18,20 @@ interface ListingsClientProps {
   initialListings: Listing[];
   coverUrls: Record<string, string | undefined>;
   leadCounts: Record<string, number>;
+  sort: string;
 }
 
 /** Curated marketplace control strip — tabs + refinements in one system (not stacked forms). */
 const selectChrome =
   'min-h-[44px] rounded-lg border-0 bg-transparent py-2 pl-0 pr-7 text-sm font-medium text-primary shadow-none ring-0 focus:ring-0 focus:outline-none cursor-pointer sm:min-h-0 sm:py-1.5';
 
-export function ListingsClient({ initialListings, coverUrls, leadCounts }: ListingsClientProps) {
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'price_asc', label: 'Price: low → high' },
+  { value: 'price_desc', label: 'Price: high → low' },
+];
+
+export function ListingsClient({ initialListings, coverUrls, leadCounts, sort }: ListingsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryTab = searchParams.get('category');
@@ -35,10 +42,10 @@ export function ListingsClient({ initialListings, coverUrls, leadCounts }: Listi
   const [leadOpen, setLeadOpen] = useState(false);
 
   const pushUrl = useCallback(
-    (next: { categoryTab: string | null; pricingCategory: string }) => {
-      router.push(buildListingsHref(next));
+    (next: { categoryTab: string | null; pricingCategory: string; sort?: string }) => {
+      router.push(buildListingsHref({ ...next, sort: next.sort ?? sort }));
     },
-    [router]
+    [router, sort]
   );
 
   const filtered = useMemo(() => {
@@ -61,7 +68,7 @@ export function ListingsClient({ initialListings, coverUrls, leadCounts }: Listi
   const clearAllFilters = () => {
     setMakeFilter('');
     setMaxPriceFilter('');
-    pushUrl({ categoryTab, pricingCategory: 'all' });
+    router.push(buildListingsHref({ categoryTab, pricingCategory: 'all', sort: 'newest' }));
   };
 
   const clearPricingOnly = () => {
@@ -145,6 +152,23 @@ export function ListingsClient({ initialListings, coverUrls, leadCounts }: Listi
                 </select>
               </div>
             </div>
+          </div>
+          <div className="hidden h-4 w-px shrink-0 self-center bg-border-subtle/50 sm:block" aria-hidden />
+          <div className="group relative flex min-w-[7.5rem] items-baseline gap-1.5 border-b border-border-subtle/50 pb-0.5 sm:min-w-0 sm:max-w-[11rem] sm:border-0 sm:pb-0">
+            <label htmlFor="filter-sort" className="sr-only">Sort</label>
+            <span className="pointer-events-none shrink-0 text-[9px] font-medium uppercase tracking-[0.08em] text-muted/50">
+              Sort
+            </span>
+            <select
+              id="filter-sort"
+              value={sort}
+              onChange={(e) => pushUrl({ categoryTab, pricingCategory: urlPricing, sort: e.target.value })}
+              className={`${selectChrome} min-w-0 flex-1`}
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
