@@ -39,6 +39,12 @@ export function TopNav() {
               >
                 How it works
               </Link>
+              <Link
+                href="/faq"
+                className="min-h-[44px] shrink-0 content-center px-1 text-xs font-medium text-secondary hover:text-primary whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 sm:min-h-0 sm:px-0 sm:text-sm sm:py-1"
+              >
+                FAQs
+              </Link>
             </div>
             <Button
               type="button"
